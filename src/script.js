@@ -44,7 +44,7 @@ function checkCollision(a,b){
     }
 }
 
-function render(fillColour, a) {
+function render(a, fillColour) {
 
     ctx.lineWidth = 10;
     ctx.beginPath();
@@ -59,9 +59,26 @@ function render(fillColour, a) {
 }
 
 
-class Object {
-    constructor(vertices){
-
+class GameObject {
+    constructor(vertices, image){
+        
     }
 }
 
+class Vector {
+    constructor({x=0,y=0}={}){
+        this.x = x;
+        this.y = y;
+    }
+}
+
+
+var player = new GameObject();
+player.vertices = [
+    {x:0,y:0},
+    {x:100,y:0},
+    {x:100,y:200},
+    {x:0,y:200},
+]
+
+render(player,"red");
