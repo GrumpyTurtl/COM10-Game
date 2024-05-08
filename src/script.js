@@ -1,6 +1,29 @@
 var c = document.getElementById('cvs');
 var ctx = c.getContext('2d');
 
+ctx.canvas.width  = window.innerHeight*1.25;
+ctx.canvas.height = window.innerHeight*0.95;
+
+var debugX = 100, debugY = 100;
+function Debug(value){
+    ctx.font = "10px serif"
+    ctx.fillStyle = "white"
+    ctx.fillText(value, debugX,debugY);
+    debugX += 10;
+}
+
+function Load(images = []){
+    for(let i = 0; i < images.length; i++){
+        let interval = setInterval(function (){
+                if(images[i].complete){
+                    clearInterval(interval);
+                }
+            }
+        ,100)
+    }
+}
+
+
 function checkCollision(a,b){
     //setting initial values
     let aMax = {x:0,y:0};
@@ -80,5 +103,18 @@ player.vertices = [
     {x:100,y:200},
     {x:0,y:200},
 ]
+const car0 = new Image()
+const car1 = new Image()
+const car2 = new Image()
+const car3 = new Image()
+car0.src = "imgs/car.png";
+car1.src = "imgs/car1.png";
+car2.src = "imgs/car2.png";
+car3.src = "imgs/car3.png";
 
-render(player,"red");
+ctx.fillStyle = "white";
+ctx.fillRect(0,0,c.width,c.height);
+ctx.fillText("Loading", 100,100);
+Load([car1,car2,car3,car0]);
+ctx.fillRect(0,0,c.width,c.height);
+ctx.drawImage(car0,c.width/2 - car0.width/2,c.height/2 - car0.height/2);
