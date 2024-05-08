@@ -96,9 +96,40 @@ function renderImage(image, x, y, rotation){
 
 
 class GameObject {
-    constructor(vertices, image){
+    constructor(vertices, image, mass){
+        this.vertices = vertices;
+        this.image = image;
+        this.velocity = {x:0,y:0};
+        this.mass = mass;
+        this.acceleration =  {x:0,y:0};
+        this.force =  {x:0,y:0};
+        this.position = this.vertices[0];
+
+        this.addForce = function (x,y){
+            this.force.x += x * this.mass
+            this.force.y += y * this.mass;
+        }
+
+        this.convertForces = function (){
+            this.acceleration.x = this.force.x / this.mass;
+            this.acceleration.y = this.force.y / this.mass;
         
+            this.velocity.x = this.acceleration.x * time.deltaTime;
+            this.velocity.y = this.acceleration.y * time.deltaTime;
+        }
+
+        this.offset = function(dx,dy){
+            for (let i = 0; i < this.vertices.length; i++) {
+                this.vertices[i] = {
+                    x: this.vertices[i].x + dx,
+                    y: this.vertices[i].y + dy,
+                };
+            }
+            this.position = this.vertices[0];
+        }
     }
+
+
 }
 
 class UI{
@@ -115,17 +146,12 @@ class Vector {
 }
 
 
-var player = new GameObject();
-player.vertices = [
-    {x:0,y:0},
-    {x:100,y:0},
-    {x:100,y:200},
-    {x:0,y:200},
-]
-const car0 = new Image()
-const car1 = new Image()
-const car2 = new Image()
-const car3 = new Image()
+
+
+const car0 = new Image();
+const car1 = new Image();
+const car2 = new Image();
+const car3 = new Image();
 car0.src = "imgs/car.png";
 car1.src = "imgs/car1.png";
 car2.src = "imgs/car2.png";
@@ -135,14 +161,71 @@ car1.width = 50,car1.height = car1.width* 2;
 car2.width = 50,car2.height = car2.width* 2;
 car3.width = 50,car3.height = car3.width* 2;
 
+var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1);
+
+var keybinds = {
+    forward:"w",
+    left:"a",
+    down:"s",
+    right:"d",
+}
+
+var time = {
+    time:0,
+    deltaTime:1,
+}
+
 /*the "loading" screen
     ctx.fillStyle = "white";
     ctx.fillRect(0,0,c.width,c.height);
     ctx.fillText("Loading", 100,100);
 */
+
 Load([car1,car2,car3,car0]);//waits for each image to load
-ctx.fillRect(0,0,c.width,c.height);//backgroud
-ctx.drawImage(car0,400,100);
-renderImage(car1,100,100,45);
-renderImage(car0,c.width/2,c.height/2,45);
-ctx.drawImage(car2,400,100);
+
+
+function Loop(){
+    ctx.clearRect(0,0,c.width,c.height)
+    renderImage(car0,player.position.x,player.position.y);
+
+    window.requestAnimationFrame(Loop);
+}
+
+window.requestAnimationFrame(Loop);
+setInterval(PhysicsLoop, time.deltaTime);
+
+function PhysicsLoop(){
+    player.convertForces();
+    player.force.y * 0.5
+    player.offset(player.velocity.x * time.deltaTime, player.velocity.y * time.deltaTime);
+
+
+    time.time += time.deltaTime;
+}
+
+
+function inputs(e){
+    if(e.key){
+        switch(e.key){
+            case(keybinds.forward):
+                player.addForce(0,1);
+            break;
+
+            case(keybinds.left):
+
+            break;
+
+            case(keybinds.down):
+
+            break;
+
+            case(keybinds.right):
+
+            break;
+        }
+    }
+}
+document.addEventListener("keydown", inputs);
+c.addEventListener("mousemove", inputs);
+document.addEventListener("mousedown", inputs);
+document.addEventListener("wheel", inputs);
