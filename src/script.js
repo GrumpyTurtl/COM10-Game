@@ -86,24 +86,43 @@ function render(a, fillColour) {
     ctx.closePath();
 }
 
-function renderImage(image, x, y, rotation){
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, x, y); // sets scale and origin
-    ctx.rotate(rotation);
-    ctx.drawImage(image, -image.width/2, -image.height/2);
-    ctx.restore();
-} 
+
+
+function rotateVertex(vertex, center, angle) {
+    const xDiff = vertex.x - center.x;
+    const yDiff = vertex.y - center.y;
+  
+    const xNew = center.x + xDiff * Math.cos(angle) - yDiff * Math.sin(angle);
+    const yNew = center.y + xDiff * Math.sin(angle) + yDiff * Math.cos(angle);
+  
+    return { x: xNew, y: yNew };
+}
+
+function findCenter(vertices){
+    const n = vertices.length;
+    let sumX = 0;
+    let sumY = 0;
+
+    for(const vertex of vertices){
+        sumX += vertex.x;
+        sumY += vertex.y;
+    }
+
+    return { x: sumX/n, y: sumY/n};
+}
 
 
 class GameObject {
     constructor(vertices, image, mass){
         this.vertices = vertices;
+        this.vertOrigin = vertices;
         this.image = image;
         this.velocity = {x:0,y:0};
         this.mass = mass;
         this.acceleration =  {x:0,y:0};
         this.force =  {x:0,y:0};
         this.position = this.vertices[0];
+        this.rotation = 0;
 
         this.addForce = function (x,y){
             this.force.x += x * this.mass
@@ -127,6 +146,35 @@ class GameObject {
             }
             this.position = this.vertices[0];
         }
+
+        this.goTo = function(x,y) {
+            for (let i = 0; i < this.vertices.length; i++) {
+                this.vertices[i] = {
+                    x: this.vertOrigin[i].x + x,
+                    y: this.vertOrigin[i].y + y
+                }
+            }
+        }
+
+        this.rotate = function(degrees){
+            let center = findCenter(this.vertOrigin);
+            let radians = degrees * Math.PI/180;
+
+            for (let i = 0; i < this.vertices.length; i++) {
+                this.vertices[i] = rotateVertex(this.vertOrigin[i], center, radians);
+            }
+        }
+
+        this.rotate(this.rotation);
+
+        this.renderImage = function (){
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y);
+            ctx.rotate(this.rotation*Math.PI/180.0);
+            ctx.translate(-this.position.x, -this.position.y);
+            ctx.drawImage(this.image, this.position.x, this.position.y, this.image.width, this.image.height);
+            ctx.restore();
+        } 
     }
 
 
@@ -134,7 +182,7 @@ class GameObject {
 
 class UI{
     constructor(x,y,w,h,shown,text,button,buttoncall){
-        buttoncall();
+        
     }
 }
 
@@ -156,10 +204,10 @@ car0.src = "imgs/car.png";
 car1.src = "imgs/car1.png";
 car2.src = "imgs/car2.png";
 car3.src = "imgs/car3.png";
-car0.width = 50,car0.height = car0.width* 2;
-car1.width = 50,car1.height = car1.width* 2;
-car2.width = 50,car2.height = car2.width* 2;
-car3.width = 50,car3.height = car3.width* 2;
+car0.width = 100,car0.height = car0.width* 2;
+car1.width = 100,car1.height = car1.width* 2;
+car2.width = 100,car2.height = car2.width* 2;
+car3.width = 100,car3.height = car3.width* 2;
 
 var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1);
 
@@ -182,12 +230,14 @@ var time = {
 */
 
 Load([car1,car2,car3,car0]);//waits for each image to load
-
+player.offset(100,200)
 
 function Loop(){
-    ctx.clearRect(0,0,c.width,c.height)
-    renderImage(car0,player.position.x,player.position.y);
+    ctx.clearRect(0,0,c.width,c.height);
+    player.rotate(0);
+    render(player, 'grey');
 
+    player.renderImage(player.position.x,player.position.y);
     window.requestAnimationFrame(Loop);
 }
 
@@ -212,15 +262,15 @@ function inputs(e){
             break;
 
             case(keybinds.left):
-
+                player.rotation = 1;
             break;
 
             case(keybinds.down):
-
+                player.addForce(1,0);
             break;
 
             case(keybinds.right):
-
+                player.rotation = 1;
             break;
         }
     }
