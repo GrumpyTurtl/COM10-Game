@@ -113,7 +113,8 @@ function findCenter(vertices){
 
 
 class GameObject {
-    constructor(vertices, image, mass, friction){
+    constructor(vertices, image, mass, friction,terminalVel){
+        this.terminalVel = terminalVel;
         this.friction = friction
         this.vertices = vertices;
         this.vertOrigin = vertices;
@@ -124,6 +125,8 @@ class GameObject {
         this.force =  {x:0,y:0};
         this.position = this.vertices[0];
         this.rotation = 0;
+        this.width = image.width;
+        this.height = image.height
 
         this.addForce = function (x,y){
             this.force.x += x * this.mass
@@ -138,6 +141,7 @@ class GameObject {
             this.velocity.x = this.acceleration.x * time.deltaTime;
             this.velocity.y = this.acceleration.y * time.deltaTime;
 
+            //sets values to 0 if they are insignificant
             this.velocity.x = (this.velocity.x < 0.01 && this.velocity.x > -0.01 ) ? 0 : this.velocity.x;
             this.velocity.y = (this.velocity.y < 0.01 && this.velocity.y > -0.01 ) ? 0 : this.velocity.y;
 
@@ -146,6 +150,13 @@ class GameObject {
 
             this.force.x = (this.force.x < 0.01 && this.force.x > -0.01 ) ? 0 : this.force.x;
             this.force.y = (this.force.y < 0.01 && this.force.y > -0.01 ) ? 0 : this.force.y;
+            
+            //terminal velocity
+            this.velocity.x = (this.velocity.x > this.terminalVel.x) ? this.terminalVel.x: this.velocity.x;
+            this.velocity.y = (this.velocity.y > this.terminalVel.y) ? this.terminalVel.y: this.velocity.y;
+            this.velocity.x = (this.velocity.x < -this.terminalVel.x) ? -this.terminalVel.x: this.velocity.x;
+            this.velocity.y = (this.velocity.y < -this.terminalVel.y) ? -this.terminalVel.y: this.velocity.y;
+
         }
 
         this.offset = function(dx,dy){
@@ -206,26 +217,26 @@ class Vector {
 
 
 
-const roadImg = new Image();
+const road = new Image();
 const car0 = new Image();
 const car1 = new Image();
 const car2 = new Image();
 const car3 = new Image();
-roadImg.src = "imgs/road.png";
+road.src = "imgs/road.png";
 car0.src = "imgs/car.png";
 car1.src = "imgs/car1.png";
 car2.src = "imgs/car2.png";
 car3.src = "imgs/car3.png";
-roadImg.width *= 1.2, roadImg.height *= 2;
+road.width *= 1.2, road.height *= 2;
 car0.width = 100,car0.height = car0.width* 2;
 car1.width = 100,car1.height = car1.width* 2;
 car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
 
-var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,0.5,{x:0.90, y:0.99});
+var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,0.4,{x:0.98, y:0.99},{x:2, y:10});
 
-var road = new GameObject([{x:0,y:0}],roadImg,1,0);
+var roads = [new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),]
 
 var keybinds = {
     forward:"w",
@@ -247,13 +258,15 @@ var time = {
 
 Load([car1,car2,car3,car0]);//waits for each image to load
 player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
-road.offset(c.width/2 - road.image.width/2,c.height/2 - road.image.height/2);
+roads[0].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.height/2);
+roads[1].goTo(roads[0].x, roads[0].y)
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
     ctx.fillStyle = "green"
     ctx.fillRect(0,0,c.width,c.height);
-    road.renderImage();
+    roads[0].renderImage();
+    roads[1].renderImage();
     player.renderImage();
 
     window.requestAnimationFrame(Loop);
@@ -268,36 +281,36 @@ function PhysicsLoop(){
     player.force.y *= player.friction.y;
 
     player.offset(player.velocity.x * time.deltaTime,0)
-    road.offset(0,player.velocity.y)
+    roads[0].offset(0,-player.velocity.y);
+    roads[1].offset(0,-player.velocity.y);
 
     time.time += time.deltaTime;
 }
-
 
 function inputs(e){
     if(e.key){
         switch(e.key){
             case(keybinds.forward):
-                player.addForce(0,-1);
+                player.addForce(0,-1 / player.mass);
                 player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
                 if(player.rotation > 0.1){player.rotation -= 0.7;}
                 if(player.rotation < -0.1){player.rotation += 0.7;}
             break;
 
             case(keybinds.left):
-                player.addForce(-1,0);
+                player.addForce(-1 / player.mass,0);
                 player.rotation = -2;
             break;
 
             case(keybinds.down):
-                player.addForce(0,1);
+                player.addForce(0,1 / player.mass);
                 player.rotation = (player.arotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
                 if(player.rotation > 0.1){player.rotation -= 0.7;}
                 if(player.rotation < -0.1){player.rotation += 0.7;}
             break;
 
             case(keybinds.right):
-                player.addForce(1,0);
+                player.addForce(1 / player.mass,0);
                 player.rotation = 2;
             break;
         }
