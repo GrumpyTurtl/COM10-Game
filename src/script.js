@@ -113,7 +113,8 @@ function findCenter(vertices){
 
 
 class GameObject {
-    constructor(vertices, image, mass){
+    constructor(vertices, image, mass, friction){
+        this.friction = friction
         this.vertices = vertices;
         this.vertOrigin = vertices;
         this.image = image;
@@ -209,7 +210,7 @@ car1.width = 100,car1.height = car1.width* 2;
 car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
-var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1);
+var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.90, y:0.99});
 
 var keybinds = {
     forward:"w",
@@ -230,14 +231,15 @@ var time = {
 */
 
 Load([car1,car2,car3,car0]);//waits for each image to load
-player.offset(100,200)
+player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2)
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
-    player.rotate(0);
-    render(player, 'grey');
+    ctx.fillStyle = "green"
+    ctx.fillRect(0,0,c.width,c.height);
 
-    player.renderImage(player.position.x,player.position.y);
+    player.renderImage(c.width/2,c.height/2);
+
     window.requestAnimationFrame(Loop);
 }
 
@@ -246,8 +248,9 @@ setInterval(PhysicsLoop, time.deltaTime);
 
 function PhysicsLoop(){
     player.convertForces();
-    player.force.y * 0.5
-    player.offset(player.velocity.x * time.deltaTime, player.velocity.y * time.deltaTime);
+    player.force.x *= player.friction.x
+    player.force.y *= player.friction.y
+    
 
 
     time.time += time.deltaTime;
@@ -258,19 +261,27 @@ function inputs(e){
     if(e.key){
         switch(e.key){
             case(keybinds.forward):
-                player.addForce(0,1);
+                player.addForce(0,-1);
+                player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
+                if(player.rotation > 0.1){player.rotation -= 0.5;}
+                if(player.rotation < -0.1){player.rotation += 0.5;}
             break;
 
             case(keybinds.left):
-                player.rotation = 1;
+                player.addForce(-1,0);
+                player.rotation = -2;
             break;
 
             case(keybinds.down):
-                player.addForce(1,0);
+                player.addForce(0,1);
+                player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
+                if(player.rotation > 0.1){player.rotation -= 0.5;}
+                if(player.rotation < -0.1){player.rotation += 0.5;}
             break;
 
             case(keybinds.right):
-                player.rotation = 1;
+                player.addForce(1,0);
+                player.rotation = 2;
             break;
         }
     }
