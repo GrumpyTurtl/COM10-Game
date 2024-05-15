@@ -131,11 +131,21 @@ class GameObject {
         }
 
         this.convertForces = function (){
+
             this.acceleration.x = this.force.x / this.mass;
             this.acceleration.y = this.force.y / this.mass;
-        
+
             this.velocity.x = this.acceleration.x * time.deltaTime;
             this.velocity.y = this.acceleration.y * time.deltaTime;
+
+            this.velocity.x = (this.velocity.x < 0.01 && this.velocity.x > -0.01 ) ? 0 : this.velocity.x;
+            this.velocity.y = (this.velocity.y < 0.01 && this.velocity.y > -0.01 ) ? 0 : this.velocity.y;
+
+            this.acceleration.x = (this.acceleration.x < 0.01 && this.acceleration.x > -0.01 ) ? 0 : this.acceleration.x;
+            this.acceleration.y = (this.acceleration.y < 0.01 && this.acceleration.y > -0.01 ) ? 0 : this.acceleration.y;
+
+            this.force.x = (this.force.x < 0.01 && this.force.x > -0.01 ) ? 0 : this.force.x;
+            this.force.y = (this.force.y < 0.01 && this.force.y > -0.01 ) ? 0 : this.force.y;
         }
 
         this.offset = function(dx,dy){
@@ -196,21 +206,26 @@ class Vector {
 
 
 
-
+const roadImg = new Image();
 const car0 = new Image();
 const car1 = new Image();
 const car2 = new Image();
 const car3 = new Image();
+roadImg.src = "imgs/road.png";
 car0.src = "imgs/car.png";
 car1.src = "imgs/car1.png";
 car2.src = "imgs/car2.png";
 car3.src = "imgs/car3.png";
+roadImg.width *= 1.2, roadImg.height *= 2;
 car0.width = 100,car0.height = car0.width* 2;
 car1.width = 100,car1.height = car1.width* 2;
 car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
-var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.90, y:0.99});
+
+var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,0.5,{x:0.90, y:0.99});
+
+var road = new GameObject([{x:0,y:0}],roadImg,1,0);
 
 var keybinds = {
     forward:"w",
@@ -231,14 +246,15 @@ var time = {
 */
 
 Load([car1,car2,car3,car0]);//waits for each image to load
-player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2)
+player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
+road.offset(c.width/2 - road.image.width/2,c.height/2 - road.image.height/2);
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
     ctx.fillStyle = "green"
     ctx.fillRect(0,0,c.width,c.height);
-
-    player.renderImage(c.width/2,c.height/2);
+    road.renderImage();
+    player.renderImage();
 
     window.requestAnimationFrame(Loop);
 }
@@ -248,10 +264,11 @@ setInterval(PhysicsLoop, time.deltaTime);
 
 function PhysicsLoop(){
     player.convertForces();
-    player.force.x *= player.friction.x
-    player.force.y *= player.friction.y
-    
+    player.force.x *= player.friction.x;
+    player.force.y *= player.friction.y;
 
+    player.offset(player.velocity.x * time.deltaTime,0)
+    road.offset(0,player.velocity.y)
 
     time.time += time.deltaTime;
 }
@@ -263,8 +280,8 @@ function inputs(e){
             case(keybinds.forward):
                 player.addForce(0,-1);
                 player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
-                if(player.rotation > 0.1){player.rotation -= 0.5;}
-                if(player.rotation < -0.1){player.rotation += 0.5;}
+                if(player.rotation > 0.1){player.rotation -= 0.7;}
+                if(player.rotation < -0.1){player.rotation += 0.7;}
             break;
 
             case(keybinds.left):
@@ -274,9 +291,9 @@ function inputs(e){
 
             case(keybinds.down):
                 player.addForce(0,1);
-                player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
-                if(player.rotation > 0.1){player.rotation -= 0.5;}
-                if(player.rotation < -0.1){player.rotation += 0.5;}
+                player.rotation = (player.arotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
+                if(player.rotation > 0.1){player.rotation -= 0.7;}
+                if(player.rotation < -0.1){player.rotation += 0.7;}
             break;
 
             case(keybinds.right):
