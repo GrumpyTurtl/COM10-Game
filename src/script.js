@@ -236,7 +236,7 @@ car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
 
-var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,0.4,{x:0.98, y:0.99},{x:2, y:10});
+var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.99, y:0.99},{x:99, y:99});
 
 var roads = [new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),];
 
@@ -298,7 +298,7 @@ function Loop(){
 window.requestAnimationFrame(Loop);
 
 function PhysicsLoop(){
-    time.deltaTime = new Date().getTime() - time.pastTime;
+    time.deltaTime = (new Date().getTime() - time.pastTime)/100;
     time.pastTime = new Date().getTime();
     player.convertForces();
     player.force.x *= player.friction.x;
@@ -315,38 +315,92 @@ function PhysicsLoop(){
 
 window.requestAnimationFrame(PhysicsLoop);
 
-//i need to make each input change keybind.value, and while it is true repetedly do it
-function inputs(e){
-    if(e.key){
+function inputs(){
+    if(keybinds.forward.value == true){
+        player.addForce(0,-1 / player.mass);
+        player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
+        if(player.rotation > 0.1){player.rotation -= 0.7;}
+        if(player.rotation < -0.1){player.rotation += 0.7;}
+    }
+
+    if(keybinds.left.value  == true){
+        player.addForce(-1 / player.mass,0);
+        player.rotation = -2;
+    }
+
+    if(keybinds.down.value== true){
+        player.addForce(0,1 / player.mass);
+        player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
+        if(player.rotation > 0.1){player.rotation -= 0.7;}
+        if(player.rotation < -0.1){player.rotation += 0.7;}
+    }
+
+    if(keybinds.right.value == true){
+        player.addForce(1 / player.mass,0);
+        player.rotation = 2;
+    }
         
+    console.log(keybinds.right.value);
+    console.log(player.velocity.y);
+    //console.log(player.acceleration.x);
+    //console.log(player.force.x);
+    console.log(time.deltaTime);
+
+
+    window.requestAnimationFrame(inputs);
+}
+
+inputs();
+//inputs
+document.addEventListener("keydown", function (e){
         switch(e.key){
-            case(keybinds.forward):
-                player.addForce(0,-1 / player.mass);
-                player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
-                if(player.rotation > 0.1){player.rotation -= 0.7;}
-                if(player.rotation < -0.1){player.rotation += 0.7;}
+            case(keybinds.forward.key):
+                keybinds.forward.value = true;
             break;
 
-            case(keybinds.left):
-                player.addForce(-1 / player.mass,0);
-                player.rotation = -2;
+            case(keybinds.left.key):
+                keybinds.left.value = true;
             break;
 
-            case(keybinds.down):
-                player.addForce(0,1 / player.mass);
-                player.rotation = (player.arotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
-                if(player.rotation > 0.1){player.rotation -= 0.7;}
-                if(player.rotation < -0.1){player.rotation += 0.7;}
+            case(keybinds.down.key):
+                keybinds.down.value = true;
             break;
 
-            case(keybinds.right):
-                player.addForce(1 / player.mass,0);
-                player.rotation = 2;
+            case(keybinds.right.key):
+                keybinds.right.value = true;
             break;
         }
+});
+
+document.addEventListener("keyup", function (e){
+    switch(e.key){
+        case(keybinds.forward.key):
+            keybinds.forward.value = false;
+        break;
+
+        case(keybinds.left.key):
+            keybinds.left.value = false;
+        break;
+
+        case(keybinds.down.key):
+            keybinds.down.value = false;
+        break;
+        
+        case(keybinds.right.key):
+            keybinds.right.value = false;
+        break;
     }
-}
-document.addEventListener("keydown", inputs);
-c.addEventListener("mousemove", inputs);
-document.addEventListener("mousedown", inputs);
-document.addEventListener("wheel", inputs);
+});
+
+c.addEventListener("mousemove", function () {
+
+});
+
+document.addEventListener("mousedown", function () {
+
+});
+
+
+document.addEventListener("wheel", function () {
+
+});
