@@ -204,9 +204,45 @@ class GameObject {
 
 }
 
+
+
 class UI{
-    constructor(x,y,w,h,shown,text,button,buttoncall){
-        
+    constructor(x,y,w,h,img,shown,text, font,buttoncall){
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.img = img;
+        this.shown = shown;
+        this.text = text;
+        this.font = font;
+        this.buttoncall = buttoncall;
+        this.rotation;
+
+        this.render = function (fillColour, BorderColour) {
+            if(this.shown){
+                ctx.fillStyle = fillColour;
+                ctx.strokeStyle = fillColour;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.fillText(this.text,this.x,this,y);
+            }
+        }
+
+        this.renderimage = function (){
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation*Math.PI/180.0);
+            ctx.translate(-this.position.x, -this.position.y);
+            ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+            ctx.restore();
+        }
+
+        this.renderText = function (colour) {
+            ctx.fillStyle = colour;
+            ctx.font = this.font;
+            ctx.fillText(this.text, this.x, this.y);
+        }
+
     }
 }
 
@@ -239,6 +275,9 @@ car3.width = 100,car3.height = car3.width* 2;
 var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.99, y:0.99},{x:99, y:99});
 
 var roads = [new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),];
+
+var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", false, null);
+
 
 var world = {
     x:0,
@@ -291,6 +330,8 @@ function Loop(){
     roads[0].renderImage();
     roads[1].renderImage();
     player.renderImage();
+    score.text = "Score: " + Math.round(time.time);
+    score.renderText("black");
 
     window.requestAnimationFrame(Loop);
 }
@@ -317,35 +358,29 @@ window.requestAnimationFrame(PhysicsLoop);
 
 function inputs(){
     if(keybinds.forward.value == true){
-        player.addForce(0,-1 / player.mass);
+        player.addForce(0,-10 / player.mass);
         player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
         if(player.rotation > 0.1){player.rotation -= 0.7;}
         if(player.rotation < -0.1){player.rotation += 0.7;}
     }
 
     if(keybinds.left.value  == true){
-        player.addForce(-1 / player.mass,0);
+        player.addForce(-10 / player.mass,0);
         player.rotation = -2;
     }
 
     if(keybinds.down.value== true){
-        player.addForce(0,1 / player.mass);
+        player.addForce(0,10 / player.mass);
         player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
         if(player.rotation > 0.1){player.rotation -= 0.7;}
         if(player.rotation < -0.1){player.rotation += 0.7;}
     }
 
     if(keybinds.right.value == true){
-        player.addForce(1 / player.mass,0);
+        player.addForce(10 / player.mass,0);
         player.rotation = 2;
     }
         
-    console.log(keybinds.right.value);
-    console.log(player.velocity.y);
-    //console.log(player.acceleration.x);
-    //console.log(player.force.x);
-    console.log(time.deltaTime);
-
 
     window.requestAnimationFrame(inputs);
 }
