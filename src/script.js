@@ -72,20 +72,7 @@ function checkCollision(a,b){
     }
 }
 
-//draws every vertex and fills it in
-function render(a, fillColour) {
 
-    ctx.lineWidth = 10;
-    ctx.beginPath();
-
-    for (var i = 0; i < a.vertices.length; i++) {
-            ctx.lineTo(a.vertices[i].x, a.vertices[i].y);
-    }
-
-    ctx.fillStyle = fillColour;
-    ctx.fill();
-    ctx.closePath();
-}
 
 
 //some math stuff that i stole from somewhere ages ago,  used for rotating hitbox,not in use so far, maybe delete it?
@@ -127,8 +114,10 @@ class GameObject {
         this.force =  {x:0,y:0};
         this.position = this.vertices[0];
         this.rotation = 0;
-        this.width = image.width;
-        this.height = image.height
+        if(image){
+            this.width = image.width;
+            this.height = image.height;
+        }
 
         this.addForce = function (x,y){
             this.force.x += x * this.mass
@@ -199,6 +188,20 @@ class GameObject {
             ctx.drawImage(this.image, this.position.x, this.position.y, this.image.width, this.image.height);
             ctx.restore();
         } 
+
+        //draws every vertex and fills it in
+        this.render = function (fillColour) {
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+
+            for (var i = 0; i < this.vertices.length; i++) {
+                    ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+            }
+
+            ctx.fillStyle = fillColour;
+            ctx.fill();
+            ctx.closePath();
+        }
     }
 
 
@@ -274,9 +277,12 @@ car3.width = 100,car3.height = car3.width* 2;
 
 var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.99, y:0.99},{x:99, y:99});
 
-var roads = [new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),];
+var roads = [new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0)];
 
-var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", false, null);
+var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0),new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
+
+var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
+var acoholLevel = new UI(c.width - 170, 30, 100,100,null, true, "Acohol Level: 0", "24px serif", null)
 
 
 var world = {
@@ -303,10 +309,12 @@ var time = {
     ctx.fillText("Loading", 100,100);
 */
 
-Load([car1,car2,car3,car0]);//waits for each image to load
+Load([car1,car2,car3,car0,road]);//waits for each image to load
 player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
 roads[0].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.height/2);
 roads[1].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.height/2 + roads[0].height)
+grass[0].offset(c.width/2 + roads[0].image.width/2, 0);
+grass[1].offset(roads[0].position.x - 500, 0);
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
@@ -329,9 +337,13 @@ function Loop(){
 
     roads[0].renderImage();
     roads[1].renderImage();
-    player.renderImage();
+    player.renderImage();  
+
+
+
     score.text = "Score: " + Math.round(time.time);
     score.renderText("black");
+    acoholLevel.renderText("black");
 
     window.requestAnimationFrame(Loop);
 }
@@ -349,6 +361,8 @@ function PhysicsLoop(){
     roads[0].offset(0,-player.velocity.y * time.deltaTime);
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y
+
+    if(checkCollision(player,grass[0]))
 
     time.time += time.deltaTime;
     window.requestAnimationFrame(PhysicsLoop);
