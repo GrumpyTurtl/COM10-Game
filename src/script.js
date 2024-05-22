@@ -268,7 +268,7 @@ car0.src = "imgs/car.png";
 car1.src = "imgs/car1.png";
 car2.src = "imgs/car2.png";
 car3.src = "imgs/car3.png";
-road.width *= 1.2, road.height *= 2;
+road.width = 512 * 1.2,road.height = 512 * 2;
 car0.width = 100,car0.height = car0.width* 2;
 car1.width = 100,car1.height = car1.width* 2;
 car2.width = 100,car2.height = car2.width* 2;
@@ -277,12 +277,18 @@ car3.width = 100,car3.height = car3.width* 2;
 
 var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.99, y:0.99},{x:99, y:99});
 
-var roads = [new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0),new GameObject([{x:0,y:0}],road,1,0)];
+var roads = [new GameObject([{x:0,y:0}],road,1,0,0),new GameObject([{x:0,y:0}],road,1,0,0)];
 
 var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0),new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
 
 var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 var acoholLevel = new UI(c.width - 170, 30, 100,100,null, true, "Acohol Level: 0", "24px serif", null)
+
+var npcs = [];
+for(let i = 0; i < 5; i++){
+    npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0.99, y:0.99},{x:99, y:99}))
+}
+
 
 
 var world = {
@@ -340,7 +346,6 @@ function Loop(){
     player.renderImage();  
 
 
-
     score.text = "Score: " + Math.round(time.time);
     score.renderText("black");
     acoholLevel.renderText("black");
@@ -362,7 +367,9 @@ function PhysicsLoop(){
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y
 
-    if(checkCollision(player,grass[0]))
+    if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
+        
+    }
 
     time.time += time.deltaTime;
     window.requestAnimationFrame(PhysicsLoop);
