@@ -31,7 +31,7 @@ function Load(images = []){
 }
 
 
-//very basic SAT that only works on rectangles,
+//very basic SAT that only works on rectangles, note: i somehow made this from memory, even i dont know how
 function checkCollision(a,b){
     //setting initial values
     let aMax = {x:0,y:0};
@@ -282,10 +282,9 @@ var roads = [new GameObject([{x:0,y:0}],road,1,0,0),new GameObject([{x:0,y:0}],r
 var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0),new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
 
 var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
-var acoholLevel = new UI(c.width - 170, 30, 100,100,null, true, "Acohol Level: 0", "24px serif", null)
 
 var npcs = [];
-for(let i = 0; i < 5; i++){
+for(let i = 0; i < 8; i++){
     npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0.99, y:0.99},{x:99, y:99}))
 }
 
@@ -346,34 +345,21 @@ function Loop(){
     if(roads[1].position.y > c.height){
         roads[1].offset(0,-roads[0].height*2);
     }
-    for(let i = 0; i < npcs.length; i++){
-        let currentNpc = npcs[i];
 
-        if(currentNpc > c.height){
-            if(player.velocity.x > 0){
-
-            }else{
-                
-            }
-        }
-
-        if(currentNpc < 0){
-            if(player.velocity.x > 0){
-
-            }else{
-
-            }
-        }
+    if(npcs[0].position.y > c.height){
+        npcs[0].image = math.random(car);
+        npcs[0].position.y = -npcs[0].w;
+        npcs[0].position.x = Math.random * 4;
+        //mkae so if going backwards spawn some acsr at the bottom
     }
 
     roads[0].renderImage();
     roads[1].renderImage();
-    player.renderImage();  
+    player.renderImage(); 
 
 
     score.text = "Score: " + Math.round(time.time);
     score.renderText("black");
-    //acoholLevel.renderText("black");
 
     window.requestAnimationFrame(Loop);
 }
