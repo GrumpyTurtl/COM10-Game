@@ -315,18 +315,24 @@ var time = {
     ctx.fillText("Loading", 100,100);
 */
 
+
 Load([car1,car2,car3,car0,road]);//waits for each image to load
+
 player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
+
 roads[0].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.height/2);
-roads[1].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.height/2 + roads[0].height)
+roads[1].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.height/2 + roads[0].height);
+
 grass[0].offset(c.width/2 + roads[0].image.width/2, 0);
 grass[1].offset(roads[0].position.x - 500, 0);
+
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
     ctx.fillStyle = "green"
     ctx.fillRect(0,0,c.width,c.height);
 
+    //check if elements are off screen
     if(roads[0].position.y + roads[0].height < 0){
         roads[0].offset(0,roads[0].height*2);
     }
@@ -335,10 +341,29 @@ function Loop(){
     }
 
     if(roads[0].position.y > c.height){
-        roads[0].offset(0,-roads[0].height*2);
+        roads[0].offset(0,-roads[1].height*2);
     }
     if(roads[1].position.y > c.height){
-        roads[1].offset(0,-roads[1].height*2);
+        roads[1].offset(0,-roads[0].height*2);
+    }
+    for(let i = 0; i < npcs.length; i++){
+        let currentNpc = npcs[i];
+
+        if(currentNpc > c.height){
+            if(player.velocity.x > 0){
+
+            }else{
+                
+            }
+        }
+
+        if(currentNpc < 0){
+            if(player.velocity.x > 0){
+
+            }else{
+
+            }
+        }
     }
 
     roads[0].renderImage();
@@ -348,7 +373,7 @@ function Loop(){
 
     score.text = "Score: " + Math.round(time.time);
     score.renderText("black");
-    acoholLevel.renderText("black");
+    //acoholLevel.renderText("black");
 
     window.requestAnimationFrame(Loop);
 }
