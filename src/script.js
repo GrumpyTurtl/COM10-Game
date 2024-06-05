@@ -1,3 +1,5 @@
+//brakes not included
+
 //links the html canvas to js
 var c = document.getElementById('cvs');
 var ctx = c.getContext('2d');
@@ -278,26 +280,26 @@ var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],ca
 
 var roads = [new GameObject([{x:0,y:0}],road,1,0,0),new GameObject([{x:0,y:0}],road,1,0,0)];
 
-var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0),new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
+var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0),new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
 
 var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 
 var npcs = [];
 for(let i = 0; i < 8; i++){
     npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0, y:0},{x:99, y:99}))
-    npcs[i].velocity.y = 10;
+    npcs[i].velocity.y = -10;
 
     switch(Math.round(Math.random() * 3)){
         case(1):
-            npcs[i].img = car1;
+            npcs[i].image = car1;
         break;
 
         case(2):
-            npcs[i].img = car2;
+            npcs[i].image = car2;
         break;
 
         case(3):
-            npcs[i].img = car3;
+            npcs[i].image = car3;
         break;
     }
 }
@@ -340,7 +342,6 @@ grass[1].offset(roads[0].position.x - 500, 0);
 
 
 function Loop(){
-    console.log(npcs[0].position.y);
     ctx.clearRect(0,0,c.width,c.height);
     ctx.fillStyle = "green"
     ctx.fillRect(0,0,c.width,c.height);
@@ -360,13 +361,15 @@ function Loop(){
         roads[1].offset(0,-roads[0].height*2);
     }
 
-    for(let i = 0; i < npcs.length; i++){
-        npcs[i].renderImage();
-    }
+
 
     roads[0].renderImage();
     roads[1].renderImage();
     player.renderImage(); 
+
+    for(let i = 0; i < npcs.length; i++){
+        npcs[i].renderImage();
+    }
 
     score.text = "Score: " + Math.round(time.time);
     score.renderText("black");
@@ -386,7 +389,7 @@ function PhysicsLoop(){
     player.offset(player.velocity.x * time.deltaTime,0)
     roads[0].offset(0,-player.velocity.y * time.deltaTime);
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
-    world.y += -player.velocity.y
+    world.y += -player.velocity.y * time.deltaTime;
 
     if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
         console.log("U ded");
@@ -395,48 +398,62 @@ function PhysicsLoop(){
 
     for(let i = 0; i < npcs.length; i++){
 
-        npcs[i].offset(npcs[i].velocity.x, npcs[i].velocity.y)
+        npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime)
 
-        if(npcs[i].position.y > c.height){
-            npcs[i].position.y = -205;
 
+
+
+
+
+
+        if(npcs[i].position.y + 200 < 0 || npcs[i].position.y > c.height){
             //image
-            switch(Math.round(Math.random() * 4)){
+            let rand = Math.round(Math.random() * 3);
+            switch(rand){
                 case(1):
-                    npcs[i].img = car1;
+                    npcs[i].image = car1;
                 break;
 
                 case(2):
-                    npcs[i].img = car2;
+                    npcs[i].image = car2;
                 break;
 
                 case(3):
-                    npcs[i].img = car3;
+                    npcs[i].image = car3;
                 break;
             }
 
             //lane
-            // switch(Math.round(Math.random() * 4)){
-            //     case(1):
-            //         npcs[i].img = car1;
-            //     break;
+            switch(Math.round(Math.random() * 4)){
+                case(1):
+                    npcs[i].position.x = 225;
+                break;
                 
-            //     case(2):
-            //         npcs[i].img = car2;
-            //     break;
+                case(2):
+                    npcs[i].position.x = 225;
+                break;
 
-            //     case(3):
-            //         npcs[i].img = car3;
-            //     break;
+                case(3):
+                    npcs[i].position.x = 225;
+                break;
 
-            //     case(4):
-            //         npcs[i].img = car3;
-            //     break;
+                case(4):
+                    npcs[i].position.x = 225;
+                break;
 
-            // }
+            }
+
         }
-    }
 
+        if(npcs[i].position.y + 200 < 0){
+            npcs[i].position.y = c.height;
+        }else if(npcs[i].position.y > c.height){
+            npcs[i].position.y = -200;
+        }
+
+
+    }
+    
 
 
 
