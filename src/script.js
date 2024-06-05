@@ -78,15 +78,15 @@ function checkCollision(a,b){
 
 
 //some math stuff that i stole from somewhere ages ago,  used for rotating hitbox,not in use so far, maybe delete it?
-function rotateVertex(vertex, center, angle) {
-    const xDiff = vertex.x - center.x;
-    const yDiff = vertex.y - center.y;
+// function rotateVertex(vertex, center, angle) {
+//     const xDiff = vertex.x - center.x;
+//     const yDiff = vertex.y - center.y;
   
-    const xNew = center.x + xDiff * Math.cos(angle) - yDiff * Math.sin(angle);
-    const yNew = center.y + xDiff * Math.sin(angle) + yDiff * Math.cos(angle);
+//     const xNew = center.x + xDiff * Math.cos(angle) - yDiff * Math.sin(angle);
+//     const yNew = center.y + xDiff * Math.sin(angle) + yDiff * Math.cos(angle);
   
-    return { x: xNew, y: yNew };
-}
+//     return { x: xNew, y: yNew };
+// }
 
 //also used for roation, and physics later
 function findCenter(vertices){
@@ -171,16 +171,16 @@ class GameObject {
             }
         }
 
-        this.rotate = function(degrees){
-            let center = findCenter(this.vertOrigin);
-            let radians = degrees * Math.PI/180;
+        // this.rotate = function(degrees){
+        //     let center = findCenter(this.vertOrigin);
+        //     let radians = degrees * Math.PI/180;
 
-            for (let i = 0; i < this.vertices.length; i++) {
-                this.vertices[i] = rotateVertex(this.vertOrigin[i], center, radians);
-            }
-        }
+        //     for (let i = 0; i < this.vertices.length; i++) {
+        //         this.vertices[i] = rotateVertex(this.vertOrigin[i], center, radians);
+        //     }
+        // }
 
-        this.rotate(this.rotation);
+        //this.rotate(this.rotation);
 
         this.renderImage = function (){
             ctx.save();
@@ -250,13 +250,6 @@ class UI{
     }
 }
 
-class Vector {
-    constructor({x=0,y=0}={}){
-        this.x = x;
-        this.y = y;
-    }
-}
-
 
 
 const road = new Image();
@@ -276,7 +269,7 @@ car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
 
-var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.99, y:0.99},{x:99, y:99});
+var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car0,1,{x:0.99, y:0.99},{x:200, y:200});
 
 var roads = [new GameObject([{x:0,y:0}],road,1,0,0),new GameObject([{x:0,y:0}],road,1,0,0)];
 
@@ -284,10 +277,11 @@ var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height
 
 var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 
+var playerScore = 0;
+
 var npcs = [];
 for(let i = 0; i < 8; i++){
     npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0, y:0},{x:99, y:99}))
-    npcs[i].velocity.y = -10;
 
     switch(Math.round(Math.random() * 3)){
         case(1):
@@ -302,6 +296,8 @@ for(let i = 0; i < 8; i++){
             npcs[i].image = car3;
         break;
     }
+
+    npcs[i].offset(225,-200);
 }
 
 
@@ -340,7 +336,6 @@ roads[1].offset(c.width/2 - roads[0].image.width/2,c.height/2 - roads[0].image.h
 grass[0].offset(c.width/2 + roads[0].image.width/2, 0);
 grass[1].offset(roads[0].position.x - 500, 0);
 
-
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
     ctx.fillStyle = "green"
@@ -371,7 +366,8 @@ function Loop(){
         npcs[i].renderImage();
     }
 
-    score.text = "Score: " + Math.round(time.time);
+    playerScore += (Math.round((time.time * Math.abs(player.velocity.y + 1) / 100)));
+    score.text = "Score: " + playerScore;
     score.renderText("black");
 
     window.requestAnimationFrame(Loop);
@@ -382,6 +378,11 @@ window.requestAnimationFrame(Loop);
 function PhysicsLoop(){
     time.deltaTime = (new Date().getTime() - time.pastTime)/100;
     time.pastTime = new Date().getTime();
+
+    if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
+        time.deltaTime = 0;
+    }
+
     player.convertForces();
     player.force.x *= player.friction.x;
     player.force.y *= player.friction.y;
@@ -391,12 +392,9 @@ function PhysicsLoop(){
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y * time.deltaTime;
 
-    if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
-        console.log("U ded");
-    }
-
 
     for(let i = 0; i < npcs.length; i++){
+        npcs[i].velocity.y = -20 * time.deltaTime;
 
         npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime)
 
@@ -430,19 +428,18 @@ function PhysicsLoop(){
                 break;
                 
                 case(2):
-                    npcs[i].position.x = 225;
+                    npcs[i].position.x = 375;
                 break;
 
                 case(3):
-                    npcs[i].position.x = 225;
+                    npcs[i].position.x = 525;
                 break;
 
                 case(4):
-                    npcs[i].position.x = 225;
+                    npcs[i].position.x = 675;
                 break;
 
             }
-
         }
 
         if(npcs[i].position.y + 200 < 0){
@@ -472,19 +469,19 @@ window.requestAnimationFrame(PhysicsLoop);
 
 function inputs(){
     if(keybinds.forward.value == true){
-        player.addForce(0,-10 / player.mass);
+        player.addForce(0,-70 / player.mass * time.deltaTime);
         player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
         if(player.rotation > 0.1){player.rotation -= 0.7;}
         if(player.rotation < -0.1){player.rotation += 0.7;}
     }
 
     if(keybinds.left.value  == true){
-        player.addForce(-10 / player.mass,0);
+        player.addForce(-40 / player.mass * time.deltaTime,0);
         player.rotation = -2;
     }
 
     if(keybinds.right.value == true){
-        player.addForce(10 / player.mass,0);
+        player.addForce(40 / player.mass * time.deltaTime,0);
         player.rotation = 2;
     }
         
