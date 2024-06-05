@@ -208,7 +208,6 @@ class GameObject {
 }
 
 
-
 class UI{
     constructor(x,y,w,h,img,shown,text, font,buttoncall){
         this.x = x;
@@ -285,7 +284,22 @@ var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 
 var npcs = [];
 for(let i = 0; i < 8; i++){
-    npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0.99, y:0.99},{x:99, y:99}))
+    npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0, y:0},{x:99, y:99}))
+    npcs[i].velocity.y = 10;
+
+    switch(Math.round(Math.random() * 3)){
+        case(1):
+            npcs[i].img = car1;
+        break;
+
+        case(2):
+            npcs[i].img = car2;
+        break;
+
+        case(3):
+            npcs[i].img = car3;
+        break;
+    }
 }
 
 
@@ -298,7 +312,6 @@ var world = {
 var keybinds = {
     forward:{key:"w",value:false},
     left:{key:"a",value:false},
-    down:{key:"s",value:false},
     right:{key:"d",value:false},
 }
 
@@ -327,6 +340,7 @@ grass[1].offset(roads[0].position.x - 500, 0);
 
 
 function Loop(){
+    console.log(npcs[0].position.y);
     ctx.clearRect(0,0,c.width,c.height);
     ctx.fillStyle = "green"
     ctx.fillRect(0,0,c.width,c.height);
@@ -346,17 +360,13 @@ function Loop(){
         roads[1].offset(0,-roads[0].height*2);
     }
 
-    if(npcs[0].position.y > c.height){
-        npcs[0].image = math.random(car);
-        npcs[0].position.y = -npcs[0].w;
-        npcs[0].position.x = Math.random * 4;
-        //mkae so if going backwards spawn some acsr at the bottom
+    for(let i = 0; i < npcs.length; i++){
+        npcs[i].renderImage();
     }
 
     roads[0].renderImage();
     roads[1].renderImage();
     player.renderImage(); 
-
 
     score.text = "Score: " + Math.round(time.time);
     score.renderText("black");
@@ -379,8 +389,63 @@ function PhysicsLoop(){
     world.y += -player.velocity.y
 
     if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
-        
+        console.log("U ded");
     }
+
+
+    for(let i = 0; i < npcs.length; i++){
+
+        npcs[i].offset(npcs[i].velocity.x, npcs[i].velocity.y)
+
+        if(npcs[i].position.y > c.height){
+            npcs[i].position.y = -205;
+
+            //image
+            switch(Math.round(Math.random() * 4)){
+                case(1):
+                    npcs[i].img = car1;
+                break;
+
+                case(2):
+                    npcs[i].img = car2;
+                break;
+
+                case(3):
+                    npcs[i].img = car3;
+                break;
+            }
+
+            //lane
+            // switch(Math.round(Math.random() * 4)){
+            //     case(1):
+            //         npcs[i].img = car1;
+            //     break;
+                
+            //     case(2):
+            //         npcs[i].img = car2;
+            //     break;
+
+            //     case(3):
+            //         npcs[i].img = car3;
+            //     break;
+
+            //     case(4):
+            //         npcs[i].img = car3;
+            //     break;
+
+            // }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     time.time += time.deltaTime;
     window.requestAnimationFrame(PhysicsLoop);
@@ -399,13 +464,6 @@ function inputs(){
     if(keybinds.left.value  == true){
         player.addForce(-10 / player.mass,0);
         player.rotation = -2;
-    }
-
-    if(keybinds.down.value== true){
-        player.addForce(0,10 / player.mass);
-        player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
-        if(player.rotation > 0.1){player.rotation -= 0.7;}
-        if(player.rotation < -0.1){player.rotation += 0.7;}
     }
 
     if(keybinds.right.value == true){
@@ -429,10 +487,6 @@ document.addEventListener("keydown", function (e){
                 keybinds.left.value = true;
             break;
 
-            case(keybinds.down.key):
-                keybinds.down.value = true;
-            break;
-
             case(keybinds.right.key):
                 keybinds.right.value = true;
             break;
@@ -449,10 +503,6 @@ document.addEventListener("keyup", function (e){
             keybinds.left.value = false;
         break;
 
-        case(keybinds.down.key):
-            keybinds.down.value = false;
-        break;
-        
         case(keybinds.right.key):
             keybinds.right.value = false;
         break;
