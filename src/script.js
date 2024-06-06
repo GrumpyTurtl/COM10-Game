@@ -33,93 +33,29 @@ function Load(images = []){
 }
 
 
-//very basic SAT that only works on rectangles, note: i somehow made this from memory, even i dont know how
 function checkCollision(a,b){
-    //setting initial values
-    let aMax = {x:0,y:0};
-    let aMin = {x:Infinity,y:Infinity};
-    let bMax = {x:0,y:0};
-    let bMin = {x:Infinity,y:Infinity};
-
-    //gets the biggest and smallest x vertex, y vertex for both objects
-    for(let i = 0; i < Math.max(a.vertices.length, b.vertices.length); i++){
-        if(a.vertices[i]){
-        aMax.x = Math.max(a.vertices[i].x, aMax.x);
-        aMin.x = Math.min(a.vertices[i].x, aMin.x);
-        aMax.y = Math.max(a.vertices[i].y, aMax.y);
-        aMin.y = Math.min(a.vertices[i].y, aMin.y);
-        }
-
-        if(b.vertices[i]){
-        bMax.x = Math.max(b.vertices[i].x, bMax.x);
-        bMin.x = Math.min(b.vertices[i].x, bMin.x);
-        bMax.y = Math.max(b.vertices[i].y, bMax.y);
-        bMin.y = Math.min(b.vertices[i].y, bMin.y);
-
-        }
-        
-    }//note: this is resource heavy, Might be better to save the values to the object, and update them on position change
-    //note:its all resource heavy, fix it maybe
-
-   //if it is colliding on the x axis
-    if(aMax.x > bMin.x && bMax.x > aMin.x){
-        //and if its colliding on the y axis
-        if(aMax.y > bMin.y && bMax.y > aMin.y){
+    if(a.position.x < b.position.x + b.width && a.position.x + a.width > b.position.x){
+        if(a.position.y < b.position.y + b.height && a.position.y + a.height > b.position.y){
             return true;
-        }else{
-            return false;
         }
-    }else{
-        return false;
     }
-}
-
-
-
-
-//some math stuff that i stole from somewhere ages ago,  used for rotating hitbox,not in use so far, maybe delete it?
-// function rotateVertex(vertex, center, angle) {
-//     const xDiff = vertex.x - center.x;
-//     const yDiff = vertex.y - center.y;
-  
-//     const xNew = center.x + xDiff * Math.cos(angle) - yDiff * Math.sin(angle);
-//     const yNew = center.y + xDiff * Math.sin(angle) + yDiff * Math.cos(angle);
-  
-//     return { x: xNew, y: yNew };
-// }
-
-//also used for roation, and physics later
-function findCenter(vertices){
-    const n = vertices.length;
-    let sumX = 0;
-    let sumY = 0;
-
-    for(const vertex of vertices){
-        sumX += vertex.x;
-        sumY += vertex.y;
-    }
-
-    return { x: sumX/n, y: sumY/n};
+    return false;
 }
 
 
 class GameObject {
-    constructor(vertices, image, mass, friction,terminalVel){
+    constructor(x,y,width,height, image, mass, friction,terminalVel){
         this.terminalVel = terminalVel;
         this.friction = friction
-        this.vertices = vertices;
-        this.vertOrigin = vertices;
         this.image = image;
         this.velocity = {x:0,y:0};
         this.mass = mass;
         this.acceleration =  {x:0,y:0};
         this.force =  {x:0,y:0};
-        this.position = this.vertices[0];
+        this.position = {x: x, y: y};
         this.rotation = 0;
-        if(image){
-            this.width = image.width;
-            this.height = image.height;
-        }
+        this.width = width;
+        this.height = height;
 
         this.addForce = function (x,y){
             this.force.x += x * this.mass
@@ -153,22 +89,13 @@ class GameObject {
         }
 
         this.offset = function(dx,dy){
-            for (let i = 0; i < this.vertices.length; i++) {
-                this.vertices[i] = {
-                    x: this.vertices[i].x + dx,
-                    y: this.vertices[i].y + dy,
-                };
-            }
-            this.position = this.vertices[0];
+            this.x += dx;
+            this.y += dy;
         }
 
         this.goTo = function(x,y) {
-            for (let i = 0; i < this.vertices.length; i++) {
-                this.vertices[i] = {
-                    x: this.vertOrigin[i].x + x,
-                    y: this.vertOrigin[i].y + y
-                }
-            }
+            this.x = x;
+            this.y = y;
         }
 
         // this.rotate = function(degrees){
@@ -273,14 +200,14 @@ var player = new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],ca
 
 var roads = [new GameObject([{x:0,y:0}],road,1,0,0),new GameObject([{x:0,y:0}],road,1,0,0)];
 
-var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0),new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
+var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height},{x:0,y:0}], null, 0,0,0),new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
 
 var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 
 var playerScore = 0;
 
 var npcs = [];
-for(let i = 0; i < 8; i++){
+for(let i = 0; i < 3; i++){
     npcs.push(new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],car1,1,{x:0, y:0},{x:99, y:99}))
 
     switch(Math.round(Math.random() * 3)){
@@ -362,12 +289,16 @@ function Loop(){
     roads[1].renderImage();
     player.renderImage(); 
 
-    for(let i = 0; i < npcs.length; i++){
-        npcs[i].renderImage();
-    }
+    player.render("blue");
 
-    playerScore += (Math.round((time.time * Math.abs(player.velocity.y + 1) / 100)));
-    score.text = "Score: " + playerScore;
+    for(let i = 0; i < npcs.length; i++){
+        npcs[i].render("purple");
+    }
+    
+    if(time.deltaTime != 0){
+        playerScore += (Math.round((time.time * Math.abs(player.velocity.y + 1) / 100)));
+    }
+    score.text = "Score: " + playerScore
     score.renderText("black");
 
     window.requestAnimationFrame(Loop);
@@ -380,8 +311,13 @@ function PhysicsLoop(){
     time.pastTime = new Date().getTime();
 
     if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
-        time.deltaTime = 0;
+        player.friction.x = 0.90;
+        player.friction.y = 0.90;
+    }else{
+        player.friction.x = 0.99;
+        player.friction.y = 0.99;
     }
+
 
     player.convertForces();
     player.force.x *= player.friction.x;
@@ -391,6 +327,7 @@ function PhysicsLoop(){
     roads[0].offset(0,-player.velocity.y * time.deltaTime);
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y * time.deltaTime;
+
 
 
     for(let i = 0; i < npcs.length; i++){
@@ -404,7 +341,7 @@ function PhysicsLoop(){
 
 
 
-        if(npcs[i].position.y + 200 < 0 || npcs[i].position.y > c.height){
+        if(npcs[i].position.y + 500 < 0 || npcs[i].position.y > c.height + 300){
             //image
             let rand = Math.round(Math.random() * 3);
             switch(rand){
@@ -442,12 +379,20 @@ function PhysicsLoop(){
             }
         }
 
-        if(npcs[i].position.y + 200 < 0){
+        if(npcs[i].position.y + 500 < 0){
             npcs[i].position.y = c.height;
-        }else if(npcs[i].position.y > c.height){
+        }else if(npcs[i].position.y > c.height + 300){
             npcs[i].position.y = -200;
         }
 
+
+        if(checkCollision(npcs[i], player)){
+            console.log("collsion")
+            npcs[i].velocity.x = player.velocity.x - npcs[i].mass * player.mass;
+            npcs[i].velocity.x = player.velocity.x - npcs[i].mass * player.mass;
+
+            player.addForce(npcs[i].mass * player.mass * -player.velocity.x,npcs[i].mass * player.mass * -player.velocity.y);
+        }
 
     }
     
@@ -476,12 +421,12 @@ function inputs(){
     }
 
     if(keybinds.left.value  == true){
-        player.addForce(-40 / player.mass * time.deltaTime,0);
+        player.addForce(-60 / player.mass * time.deltaTime,0);
         player.rotation = -2;
     }
 
     if(keybinds.right.value == true){
-        player.addForce(40 / player.mass * time.deltaTime,0);
+        player.addForce(60 / player.mass * time.deltaTime,0);
         player.rotation = 2;
     }
         
