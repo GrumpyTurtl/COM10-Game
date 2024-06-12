@@ -188,7 +188,7 @@ car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
 
-var player = new GameObject(0,0,100,200,car0,1,{x:0.99, y:0.99},{x:200, y:200});
+var player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:200, y:200});
 
 var roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
 
@@ -200,7 +200,7 @@ var playerScore = 0;
 
 var npcs = [];
 for(let i = 0; i < 3; i++){
-    npcs.push(new GameObject(0,0,100,200,car1,1,{x:0, y:0},{x:99, y:99}))
+    npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}))
 
     switch(Math.round(Math.random() * 3)){
         case(1):
@@ -321,17 +321,12 @@ function PhysicsLoop(){
 
 
     for(let i = 0; i < npcs.length; i++){
-        npcs[i].velocity.y = -20 * time.deltaTime;
-
+        //move every npcs by their velocity
         npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime)
-
-
-
-
-
-
-
+        //if off screen - reset
         if(npcs[i].position.y + 500 < 0 || npcs[i].position.y > c.height + 300){
+            npcs[i].velocity.y = -20 * time.deltaTime;
+            npcs[i].velocity.x = 0;
             //image
             let rand = Math.round(Math.random() * 3);
             switch(rand){
@@ -369,21 +364,21 @@ function PhysicsLoop(){
             }
         }
 
+        //wrapping
         if(npcs[i].position.y + 500 < 0){
             npcs[i].position.y = c.height;
         }else if(npcs[i].position.y > c.height + 300){
             npcs[i].position.y = -200;
         }
 
-
+        //npcs collisions
         if(checkCollision(npcs[i], player)){
             console.log("collsion")
-            npcs[i].velocity.x = player.velocity.x - npcs[i].mass * player.mass;
-            npcs[i].velocity.x = player.velocity.x - npcs[i].mass * player.mass;
-
-            player.addForce(npcs[i].mass * player.mass * -player.velocity.x,npcs[i].mass * player.mass * -player.velocity.y);
+            npcs[i].velocity.x += player.velocity.x / npcs[i].mass;
+            npcs[i].velocity.x += player.velocity.x / npcs[i].mass
+            npcs[i].renderImage();
+            player.addForce(player.mass / -player.velocity.x,player.mass / -player.velocity.y);
         }
-
     }
     
 
