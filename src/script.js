@@ -40,6 +40,7 @@ function checkCollision(a,b){
         }
     }
     return false;
+    
 }
 
 
@@ -199,7 +200,7 @@ var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 var playerScore = 0;
 
 var npcs = [];
-for(let i = 0; i < 999; i++){
+for(let i = 0; i < 9; i++){
     npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}))
 
     switch(Math.round(Math.random() * 3)){
