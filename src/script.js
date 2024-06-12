@@ -36,7 +36,7 @@ function Load(images = []){
 function checkCollision(a,b){
     if(a.position.x < b.position.x + b.width && a.position.x + a.width > b.position.x){
         if(a.position.y < b.position.y + b.height && a.position.y + a.height > b.position.y){
-            return true;
+           return true;
         }
     }
     return false;
@@ -199,7 +199,7 @@ var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
 var playerScore = 0;
 
 var npcs = [];
-for(let i = 0; i < 3; i++){
+for(let i = 0; i < 999; i++){
     npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}))
 
     switch(Math.round(Math.random() * 3)){
@@ -279,10 +279,8 @@ function Loop(){
     roads[1].renderImage()
     player.renderImage(); 
 
-    player.render("blue");
-
     for(let i = 0; i < npcs.length; i++){
-        npcs[i].render("purple");
+        npcs[i].renderImage();
     }
     
     if(time.deltaTime != 0){
@@ -322,7 +320,7 @@ function PhysicsLoop(){
 
     for(let i = 0; i < npcs.length; i++){
         //move every npcs by their velocity
-        npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime)
+        npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime);
         //if off screen - reset
         if(npcs[i].position.y + 500 < 0 || npcs[i].position.y > c.height + 300){
             npcs[i].velocity.y = -20 * time.deltaTime;
@@ -373,11 +371,28 @@ function PhysicsLoop(){
 
         //npcs collisions
         if(checkCollision(npcs[i], player)){
-            console.log("collsion")
-            npcs[i].velocity.x += player.velocity.x / npcs[i].mass;
-            npcs[i].velocity.x += player.velocity.x / npcs[i].mass
-            npcs[i].renderImage();
-            player.addForce(player.mass / -player.velocity.x,player.mass / -player.velocity.y);
+            let force = {x:0 , y:0}
+            while(checkCollision(npcs[i], player)){
+                if(npcs[i].position.x < player.position.x + player.width && npcs[i].position.x > player.position.x + player.width/2){
+                    npcs[i].position.x++;
+                    force.x++;
+                }else{
+                    npcs[i].position.x--;
+                    force.x--;
+                }
+
+                if(npcs[i].position.y < player.position.y + player.height && npcs[i].position.y > player.position.y + player.height/2){
+                    npcs[i].position.y++;
+                    force.y++;
+                }else{
+                    npcs[i].position.y--;
+                    force.y--;
+                }
+            }
+            npcs[i].velocity.x += force.x;
+            npcs[i].velocity.y += force.y;
+
+            player.velocity.y / player.mass;
         }
     }
     
