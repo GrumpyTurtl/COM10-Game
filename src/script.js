@@ -193,11 +193,12 @@ var player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:200, y:200});
 
 var roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
 
-var grass = [new GameObject([{x:0,y:0},{x:500,y:0},{x:500,y:0},{x:500,y:c.height},{x:0,y:c.height},{x:0,y:0}], null, 0,0,0),new GameObject([{x:0,y:0},{x:100,y:0},{x:100,y:0},{x:500,y:c.height},{x:0,y:c.height}], null, 0,0,0)];
+var grass = [new GameObject(0,0,500,500, null, 0,0,0),new GameObject(0,0,500,500, null, 0,0,0)];
 
-var score = new UI(30,30,100,100,null,true,"Score: 0","24px Serif", null);
+var score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
 
 var playerScore = 0;
+var playerHealth = 2000;
 
 var npcs = [];
 for(let i = 0; i < 9; i++){
@@ -250,11 +251,11 @@ Load([car1,car2,car3,car0,road]);//waits for each image to load
 
 player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
 
-roads[0].goTo(c.width/2 - roads[0].width/2, -roads[0].height);
-roads[1].goTo(c.width/2 - roads[1].width/2, 0);
+roads[0].goTo(c.width/2 - roads[0].width/2 -45, -roads[0].height);
+roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
 
-grass[0].offset(c.width/2 + roads[0].image.width/2, 0);
-grass[1].offset(roads[0].position.x - 500, 0);
+grass[0].goTo(0,0);
+grass[1].goTo(500,0);
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
@@ -279,16 +280,25 @@ function Loop(){
     roads[0].renderImage();
     roads[1].renderImage()
     player.renderImage(); 
+    grass[0].render("blue");
 
     for(let i = 0; i < npcs.length; i++){
         npcs[i].renderImage();
     }
     
-    if(time.deltaTime != 0){
-        playerScore += (Math.round((time.time * Math.abs(player.velocity.y + 1) / 100)));
-    }
+        playerScore += (Math.round(( Math.abs(player.velocity.y + 1) / 100)));
+
     score.text = "Score: " + playerScore
     score.renderText("black");
+
+    playerHealth = (playerHealth < 0) ? 0 : playerHealth;
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(20,40,160,20);
+    ctx.fillStyle = "red";
+    ctx.fillRect(25,45,150,10);
+    ctx.fillStyle = "lime";
+    ctx.fillRect(25,45,playerHealth/13.333,10);
 
     window.requestAnimationFrame(Loop);
 }
@@ -316,6 +326,7 @@ function PhysicsLoop(){
     roads[0].offset(0,-player.velocity.y * time.deltaTime);
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y * time.deltaTime;
+
 
 
 
@@ -368,7 +379,7 @@ function PhysicsLoop(){
             npcs[i].position.y = c.height;
         }else if(npcs[i].position.y > c.height + 300){
             npcs[i].position.y = -200;
-        }
+        }   
 
         //npcs collisions
         if(checkCollision(npcs[i], player)){
@@ -394,6 +405,7 @@ function PhysicsLoop(){
             npcs[i].velocity.y += force.y;
 
             player.velocity.y / player.mass;
+            playerHealth -= Math.abs(Math.round(player.velocity.y/100 + npcs[i].velocity.y));
         }
     }
     
@@ -412,6 +424,10 @@ function PhysicsLoop(){
 }
 
 window.requestAnimationFrame(PhysicsLoop);
+
+
+
+
 
 function inputs(){
     if(keybinds.forward.value == true){
