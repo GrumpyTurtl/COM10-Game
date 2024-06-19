@@ -162,11 +162,11 @@ class UI{
             }
         }
 
-        this.renderText = function (colour) {
+        this.renderText = function (colour, dx, dy) {
             if(this.shown){
                 ctx.fillStyle = colour;
                 ctx.font = this.font;
-                ctx.fillText(this.text, this.x, this.y);
+                ctx.fillText(this.text, this.x + dx, this.y + dy);
             }
         }
 
@@ -203,10 +203,10 @@ var grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,10
 
 var score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
 
-var startScreen = [new UI(500,450,100,100,null,true,"Start Game", "24px Serif")];
+var startScreen = [new UI(500,250,200,100,null,true,"Start Game", "24px Serif")];
 
 
-
+var Paused = true;
 var playerScore = 0;
 var playerHealth = 2000;
 
@@ -267,9 +267,6 @@ roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
 grass[0].goTo(0,0);
 grass[1].goTo(810,0);
 
-function Start(){
-console.log("AHHAHAHHA")
-}
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
@@ -296,17 +293,17 @@ function Loop(){
     grass[0].render("green");
     grass[1].render("green");
     player.renderImage(); 
-    startScreen[0].renderText("black");
+
 
 
     for(let i = 0; i < npcs.length; i++){
         npcs[i].renderImage();
     }
     
-        playerScore += (Math.round(( Math.abs(player.velocity.y + 1) / 100)));
+    playerScore += (Math.round(( Math.abs(player.velocity.y + 1) / 100)));
 
     score.text = "Score: " + playerScore
-    score.renderText("black");
+    score.renderText("black", 5,5);
 
     playerHealth = (playerHealth < 0) ? 0 : playerHealth;
 
@@ -317,7 +314,12 @@ function Loop(){
     ctx.fillStyle = "lime";
     ctx.fillRect(25,45,playerHealth/13.333,10);
 
-    
+    if(Paused){
+        ctx.drawImage(MenuImg, 0, 0,1000,900);
+        startScreen[0].render("grey");
+        startScreen[0].renderText("white", 50,62);
+        startScreen[0].shown = true;
+    }
 
 
     window.requestAnimationFrame(Loop);
@@ -330,7 +332,24 @@ function PhysicsLoop(){
     time.pastTime = new Date().getTime();
 
     if(playerHealth <= 0){
-        time.deltaTime = 0;
+        Paused = true;
+        playerHealth = 2000;
+        playerScore = 0;  
+
+        player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:200, y:200});
+        roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
+        grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
+        score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
+        startScreen = [new UI(500,250,200,100,null,true,"Start Game", "24px Serif")];
+
+        player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
+
+        roads[0].goTo(c.width/2 - roads[0].width/2 -45, -roads[0].height);
+        roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
+
+        grass[0].goTo(0,0);
+        grass[1].goTo(810,0);
+
     }
 
 
@@ -453,6 +472,8 @@ window.requestAnimationFrame(PhysicsLoop);
 
 
 function inputs(){
+if(!Paused){
+    
     if(keybinds.forward.value == true){
         player.addForce(0,-70 / player.mass * time.deltaTime);
         player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
@@ -469,7 +490,7 @@ function inputs(){
         player.addForce(60 / player.mass * time.deltaTime,0);
         player.rotation = 2;
     }
-        
+} 
 
     window.requestAnimationFrame(inputs);
 }
@@ -519,7 +540,7 @@ document.addEventListener("mousedown", function (event) {
         const y = event.clientY - rect.top
         if(x > startScreen[0].x && x < startScreen[0].x + startScreen[0].w){
             if(y > startScreen[0].y && y < startScreen[0].y + startScreen[0].h){
-                Start();
+                Paused = false;
                 startScreen[0].shown = false;
             }
         }
