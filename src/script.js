@@ -194,8 +194,10 @@ car1.width = 100,car1.height = car1.width* 2;
 car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
+const Honk = new Audio("audio/honk.wav");
 
-var player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:200, y:200});
+
+var player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:9200, y:9200});
 
 var roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
 
@@ -203,7 +205,8 @@ var grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,10
 
 var score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
 
-var startScreen = [new UI(500,250,200,100,null,true,"Start Game", "24px Serif")];
+var startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif"), new UI(0,0,10,10,null,true, null, null)];
+
 
 
 var Paused = true;
@@ -212,7 +215,7 @@ var playerHealth = 2000;
 
 var npcs = [];
 for(let i = 0; i < 9; i++){
-    npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}))
+    npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}));
 
     switch(Math.round(Math.random() * 3)){
         case(1):
@@ -228,7 +231,7 @@ for(let i = 0; i < 9; i++){
         break;
     }
 
-    npcs[i].offset(225,-200);
+    npcs[i].goTo(225,-200 * Math.random() * 40);
 }
 
 
@@ -273,14 +276,8 @@ function Loop(){
     ctx.fillStyle = "green"
     ctx.fillRect(0,0,c.width,c.height);
 
-    //check if elements are off screen
-    // if(roads[0].position.y + roads[0].height < 0){
-    //     roads[0].goTo(roads[1].position.x,roads[1].position.y + roads[1].height);
-    // }
-    // if(roads[1].position.y + roads[1].height < 0){
-    //     roads[1].goTo(roads[1].position.x,roads[0].position.y + roads[0].height);
-    // }
-
+    Honk.play();
+    
     if(roads[0].position.y > c.height){
         roads[0].goTo(roads[1].position.x,  roads[1].position.y - roads[0].height);
     }
@@ -316,8 +313,8 @@ function Loop(){
 
     if(Paused){
         ctx.drawImage(MenuImg, 0, 0,1000,900);
-        startScreen[0].render("grey");
-        startScreen[0].renderText("white", 50,62);
+        startScreen[0].render("#46494f");
+        startScreen[0].renderText("Black", 50,32);
         startScreen[0].shown = true;
     }
 
@@ -340,7 +337,7 @@ function PhysicsLoop(){
         roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
         grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
         score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
-        startScreen = [new UI(500,250,200,100,null,true,"Start Game", "24px Serif")];
+        startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif")];
 
         player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
 
@@ -371,87 +368,87 @@ function PhysicsLoop(){
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y * time.deltaTime;
 
+    if(!Paused){
+        for(let i = 0; i < npcs.length; i++){
+            //move every npcs by their velocity
+            npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime);
+            //if off screen - reset
+            if(npcs[i].position.y + 500 < 0 || npcs[i].position.y > c.height + 300){
+                npcs[i].velocity.y = -20 * time.deltaTime;
+                npcs[i].velocity.x = 0;
+                //image
+                let rand = Math.round(Math.random() * 3);
+                switch(rand){
+                    case(1):
+                        npcs[i].image = car1;
+                    break;
 
-    for(let i = 0; i < npcs.length; i++){
-        //move every npcs by their velocity
-        npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime);
-        //if off screen - reset
-        if(npcs[i].position.y + 500 < 0 || npcs[i].position.y > c.height + 300){
-            npcs[i].velocity.y = -20 * time.deltaTime;
-            npcs[i].velocity.x = 0;
-            //image
-            let rand = Math.round(Math.random() * 3);
-            switch(rand){
-                case(1):
-                    npcs[i].image = car1;
-                break;
+                    case(2):
+                        npcs[i].image = car2;
+                    break;
 
-                case(2):
-                    npcs[i].image = car2;
-                break;
-
-                case(3):
-                    npcs[i].image = car3;
-                break;
-            }
-
-            //lane
-            switch(Math.round(Math.random() * 4)){
-                case(1):
-                    npcs[i].position.x = 225;
-                break;
-                
-                case(2):
-                    npcs[i].position.x = 375;
-                break;
-
-                case(3):
-                    npcs[i].position.x = 525;
-                break;
-
-                case(4):
-                    npcs[i].position.x = 675;
-                break;
-
-            }
-        }
-
-        //wrapping
-        if(npcs[i].position.y + 500 < 0){
-            npcs[i].position.y = c.height;
-        }else if(npcs[i].position.y > c.height + 300){
-            npcs[i].position.y = -200;
-        }   
-
-        //npcs collisions
-        if(checkCollision(npcs[i], player)){
-            let force = {x:0 , y:0}
-            while(checkCollision(npcs[i], player)){
-                if(npcs[i].position.x < player.position.x + player.width && npcs[i].position.x > player.position.x + player.width/2){
-                    npcs[i].position.x++;
-                    force.x++;
-                }else{
-                    npcs[i].position.x--;
-                    force.x--;
+                    case(3):
+                        npcs[i].image = car3;
+                    break;
                 }
 
-                if(npcs[i].position.y < player.position.y + player.height && npcs[i].position.y > player.position.y + player.height/2){
-                    npcs[i].position.y++;
-                    force.y++;
-                }else{
-                    npcs[i].position.y--;
-                    force.y--;
+                //lane
+                switch(Math.round(Math.random() * 4)){
+                    case(1):
+                        npcs[i].position.x = 225;
+                    break;
+                    
+                    case(2):
+                        npcs[i].position.x = 375;
+                    break;
+
+                    case(3):
+                        npcs[i].position.x = 525;
+                    break;
+
+                    case(4):
+                        npcs[i].position.x = 675;
+                    break;
+
                 }
             }
-            npcs[i].velocity.x += force.x * time.deltaTime;
-            npcs[i].velocity.y += force.y * time.deltaTime;
 
-            player.velocity.y / player.mass * time.deltaTime;
-            playerHealth -= Math.abs(Math.round(player.velocity.y/100 + npcs[i].velocity.y));
+            //wrapping
+            if(npcs[i].position.y + 500 < 0){
+                npcs[i].position.y = c.height;
+            }else if(npcs[i].position.y > c.height + 300){
+                npcs[i].position.y = -200;
+            }   
+
+            //npcs collisions
+            if(checkCollision(npcs[i], player)){
+                let force = {x:0 , y:0}
+                while(checkCollision(npcs[i], player)){
+                    if(npcs[i].position.x < player.position.x + player.width && npcs[i].position.x > player.position.x + player.width/2){
+                        npcs[i].position.x++;
+                        force.x++;
+                    }else{
+                        npcs[i].position.x--;
+                        force.x--;
+                    }
+
+                    if(npcs[i].position.y < player.position.y + player.height && npcs[i].position.y > player.position.y + player.height/2){
+                        npcs[i].position.y++;
+                        force.y++;
+                    }else{
+                        npcs[i].position.y--;
+                        force.y--;
+                    }
+                }
+                npcs[i].velocity.x += force.x * time.deltaTime;
+                npcs[i].velocity.y += force.y  * (-1 *player.velocity.y / 10) * time.deltaTime;
+
+                player.velocity.y / player.mass * time.deltaTime;
+                playerHealth -= Math.abs(Math.round(player.velocity.y/100 + npcs[i].velocity.y));
+            }
         }
+        
     }
-    
-
 
 
 
@@ -475,7 +472,7 @@ function inputs(){
 if(!Paused){
     
     if(keybinds.forward.value == true){
-        player.addForce(0,-70 / player.mass * time.deltaTime);
+        player.addForce(0,-150 / player.mass * time.deltaTime);
         player.rotation = (player.rotation > -0.1 && player.rotation < 0.1) ? 0 : player.rotation;
         if(player.rotation > 0.1){player.rotation -= 0.7;}
         if(player.rotation < -0.1){player.rotation += 0.7;}
@@ -542,6 +539,18 @@ document.addEventListener("mousedown", function (event) {
             if(y > startScreen[0].y && y < startScreen[0].y + startScreen[0].h){
                 Paused = false;
                 startScreen[0].shown = false;
+            }
+        }
+    }
+    if(startScreen[1].shown){
+
+        const rect = c.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+        if(x > startScreen[1].x && x < startScreen[1].x + startScreen[1].w){
+            if(y > startScreen[1].y && y < startScreen[1].y + startScreen[1].h){
+                playerHealth = Infinity;
+                startScreen[1].shown = false;
             }
         }
     }
