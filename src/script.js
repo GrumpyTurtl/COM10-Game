@@ -131,7 +131,7 @@ class GameObject {
 
 
 class UI{
-    constructor(x,y,w,h,img,shown,text, font,buttoncall){
+    constructor(x,y,w,h,img,shown,text, font){
         this.x = x;
         this.y = y;
         this.w = w;
@@ -140,7 +140,6 @@ class UI{
         this.shown = shown;
         this.text = text;
         this.font = font;
-        this.buttoncall = buttoncall;
         this.rotation;
 
         this.render = function (fillColour, BorderColour) {
@@ -153,19 +152,24 @@ class UI{
         }
 
         this.renderimage = function (){
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation*Math.PI/180.0);
-            ctx.translate(-this.position.x, -this.position.y);
-            ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
-            ctx.restore();
+            if(this.shown){
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation*Math.PI/180.0);
+                ctx.translate(-this.position.x, -this.position.y);
+                ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+                ctx.restore();
+            }
         }
 
         this.renderText = function (colour) {
-            ctx.fillStyle = colour;
-            ctx.font = this.font;
-            ctx.fillText(this.text, this.x, this.y);
+            if(this.shown){
+                ctx.fillStyle = colour;
+                ctx.font = this.font;
+                ctx.fillText(this.text, this.x, this.y);
+            }
         }
+
 
     }
 }
@@ -177,11 +181,13 @@ const car0 = new Image();
 const car1 = new Image();
 const car2 = new Image();
 const car3 = new Image();
+const MenuImg = new Image();
 road.src = "imgs/road.png";
 car0.src = "imgs/car.png";
 car1.src = "imgs/car1.png";
 car2.src = "imgs/car2.png";
 car3.src = "imgs/car3.png";
+MenuImg.src = "imgs/menu.png";
 road.width = 512 * 1.2,road.height = 512 * 2;
 car0.width = 100,car0.height = car0.width* 2;
 car1.width = 100,car1.height = car1.width* 2;
@@ -193,9 +199,13 @@ var player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:200, y:200});
 
 var roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
 
-var grass = [new GameObject(0,0,500,500, null, 0,0,0),new GameObject(0,0,500,500, null, 0,0,0)];
+var grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
 
 var score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
+
+var startScreen = [new UI(500,450,100,100,null,true,"Start Game", "24px Serif")];
+
+
 
 var playerScore = 0;
 var playerHealth = 2000;
@@ -247,7 +257,7 @@ var time = {
 */
 
 
-Load([car1,car2,car3,car0,road]);//waits for each image to load
+Load([car1,car2,car3,car0,road,MenuImg]);//waits for each image to load
 
 player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
 
@@ -255,7 +265,11 @@ roads[0].goTo(c.width/2 - roads[0].width/2 -45, -roads[0].height);
 roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
 
 grass[0].goTo(0,0);
-grass[1].goTo(500,0);
+grass[1].goTo(810,0);
+
+function Start(){
+console.log("AHHAHAHHA")
+}
 
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
@@ -278,9 +292,12 @@ function Loop(){
     }
 
     roads[0].renderImage();
-    roads[1].renderImage()
+    roads[1].renderImage();
+    grass[0].render("green");
+    grass[1].render("green");
     player.renderImage(); 
-    grass[0].render("blue");
+    startScreen[0].renderText("black");
+
 
     for(let i = 0; i < npcs.length; i++){
         npcs[i].renderImage();
@@ -300,6 +317,9 @@ function Loop(){
     ctx.fillStyle = "lime";
     ctx.fillRect(25,45,playerHealth/13.333,10);
 
+    
+
+
     window.requestAnimationFrame(Loop);
 }
 
@@ -308,6 +328,11 @@ window.requestAnimationFrame(Loop);
 function PhysicsLoop(){
     time.deltaTime = (new Date().getTime() - time.pastTime)/100;
     time.pastTime = new Date().getTime();
+
+    if(playerHealth <= 0){
+        time.deltaTime = 0;
+    }
+
 
     if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
         player.friction.x = 0.90;
@@ -326,8 +351,6 @@ function PhysicsLoop(){
     roads[0].offset(0,-player.velocity.y * time.deltaTime);
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
     world.y += -player.velocity.y * time.deltaTime;
-
-
 
 
     for(let i = 0; i < npcs.length; i++){
@@ -401,10 +424,10 @@ function PhysicsLoop(){
                     force.y--;
                 }
             }
-            npcs[i].velocity.x += force.x;
-            npcs[i].velocity.y += force.y;
+            npcs[i].velocity.x += force.x * time.deltaTime;
+            npcs[i].velocity.y += force.y * time.deltaTime;
 
-            player.velocity.y / player.mass;
+            player.velocity.y / player.mass * time.deltaTime;
             playerHealth -= Math.abs(Math.round(player.velocity.y/100 + npcs[i].velocity.y));
         }
     }
@@ -489,8 +512,18 @@ c.addEventListener("mousemove", function () {
 
 });
 
-document.addEventListener("mousedown", function () {
-
+document.addEventListener("mousedown", function (event) {
+    if(startScreen[0].shown){
+        const rect = c.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+        if(x > startScreen[0].x && x < startScreen[0].x + startScreen[0].w){
+            if(y > startScreen[0].y && y < startScreen[0].y + startScreen[0].h){
+                Start();
+                startScreen[0].shown = false;
+            }
+        }
+    }
 });
 
 
