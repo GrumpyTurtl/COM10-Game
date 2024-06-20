@@ -1,4 +1,5 @@
-//brakes not included
+//brakes not included - made by oli hills
+//note: sorry if this is impossible to read. I tried to add comments.
 
 //links the html canvas to js
 var c = document.getElementById('cvs');
@@ -7,19 +8,10 @@ var ctx = c.getContext('2d');
 ctx.canvas.width = 1000;
 ctx.canvas.height = 900;
 
-//jesus(stack overflow) gave me this in a dream, it stops images from becoming blurry when rotated
+//jesus(stack overflow) gave me this, it stops images from becoming blurry when rotated
 ctx.imageSmoothingEnabled = false;
 
-//shows values on screen
-var debugX = 100, debugY = 100;
-function Debug(value){
-    ctx.font = "10px serif";
-    ctx.fillStyle = "white";
-    ctx.fillText(value, debugX,debugY);
-    debugX += 10;
-}
-
-//for every image wait till it loads(currently game is small enough to not need it)
+//for every image wait till it loads(currently its just the road can fail to load sometimes);
 function Load(images = []){
     for(let i = 0; i < images.length; i++){
 
@@ -32,10 +24,10 @@ function Load(images = []){
     }
 }
 
-
+//simple AABB collision
 function checkCollision(a,b){
-    if(a.position.x < b.position.x + b.width && a.position.x + a.width > b.position.x){
-        if(a.position.y < b.position.y + b.height && a.position.y + a.height > b.position.y){
+    if(a.position.x < b.position.x + b.width && a.position.x + a.width > b.position.x){//if colliding on x
+        if(a.position.y < b.position.y + b.height && a.position.y + a.height > b.position.y){// and y
            return true;
         }
     }
@@ -43,7 +35,7 @@ function checkCollision(a,b){
     
 }
 
-
+//all physics based objects in game, and ones that need collisions
 class GameObject {
     constructor(x,y,width,height, image, mass, friction,terminalVel){
         this.terminalVel = terminalVel;
@@ -99,39 +91,26 @@ class GameObject {
             this.position.y = y;
         }
 
-        // this.rotate = function(degrees){
-        //     let center = findCenter(this.vertOrigin);
-        //     let radians = degrees * Math.PI/180;
-
-        //     for (let i = 0; i < this.vertices.length; i++) {
-        //         this.vertices[i] = rotateVertex(this.vertOrigin[i], center, radians);
-        //     }
-        // }
-
-        //this.rotate(this.rotation);
-
+        //the reason it is complicated is because it rotates the image.
         this.renderImage = function (){
-            ctx.save();
-            ctx.translate(this.position.x, this.position.y);
-            ctx.rotate(this.rotation*Math.PI/180.0);
-            ctx.translate(-this.position.x, -this.position.y);
+            ctx.save();//saves the canvas in its current state
+            ctx.translate(this.position.x, this.position.y);//moves "0,0" to object position
+            ctx.rotate(this.rotation*Math.PI/180.0);//rotates around 0,0
+            ctx.translate(-this.position.x, -this.position.y);//moves 0,0 back to 0,0
             ctx.drawImage(this.image, this.position.x, this.position.y, this.image.width, this.image.height);
-            ctx.restore();
+            ctx.restore();//restores the canvas in its original state
         } 
 
-        //draws every vertex and fills it in
         this.render = function (fillColour) {
             ctx.fillStyle = fillColour;
             ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
         }
     }
-
-
 }
 
-
+//all buttons and text.
 class UI{
-    constructor(x,y,w,h,img,shown,text, font){
+    constructor(x,y,w,h,img,shown,text,font){
         this.x = x;
         this.y = y;
         this.w = w;
@@ -175,7 +154,7 @@ class UI{
 }
 
 
-
+//image initialisation
 const road = new Image();
 const car0 = new Image();
 const car1 = new Image();
@@ -194,53 +173,11 @@ car1.width = 100,car1.height = car1.width* 2;
 car2.width = 100,car2.height = car2.width* 2;
 car3.width = 100,car3.height = car3.width* 2;
 
+//audio initialisation
 const Honk = new Audio("audio/honk.wav");
 
 
-var player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:9200, y:9200});
-
-var roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
-
-var grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
-
-var score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
-
-var startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif"), new UI(0,0,10,10,null,true, null, null)];
-
-
-
-var Paused = true;
-var playerScore = 0;
-var playerHealth = 2000;
-
-var npcs = [];
-for(let i = 0; i < 9; i++){
-    npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}));
-
-    switch(Math.round(Math.random() * 3)){
-        case(1):
-            npcs[i].image = car1;
-        break;
-
-        case(2):
-            npcs[i].image = car2;
-        break;
-
-        case(3):
-            npcs[i].image = car3;
-        break;
-    }
-
-    npcs[i].goTo(225,-200 * Math.random() * 40);
-}
-
-
-
-var world = {
-    x:0,
-    y:0,
-}
-
+//allowing for if i add keybinding option
 var keybinds = {
     forward:{key:"w",value:false},
     left:{key:"a",value:false},
@@ -253,70 +190,113 @@ var time = {
     pastTime: new Date().getTime(),
 }
 
-/*the "loading" screen
-    ctx.fillStyle = "white";
-    ctx.fillRect(0,0,c.width,c.height);
-    ctx.fillText("Loading", 100,100);
-*/
+
+Load([car1,car2,car3,car0,road,MenuImg]);
 
 
-Load([car1,car2,car3,car0,road,MenuImg]);//waits for each image to load
 
-player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
+var player;
+var playerScore;
+var playerHealth;
 
-roads[0].goTo(c.width/2 - roads[0].width/2 -45, -roads[0].height);
-roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
+var roads;
+var npcs;
 
-grass[0].goTo(0,0);
-grass[1].goTo(810,0);
+var score;
+var startScreen;
+
+var Paused;
 
 
+
+init(); 
+
+//initialises all objects and scores(not images)
+function init(){
+
+    //game objects
+    player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:9200, y:9200});
+    roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
+    grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
+
+    //UI
+    score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
+    startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif"), new UI(0,0,10,10,null,true, null, null)];
+
+    //npcs init
+    npcs = [];
+    for(let i = 0; i < 9; i++){
+        npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}));
+
+        switch(Math.round(Math.random() * 3)){
+            case(1):
+                npcs[i].image = car1;
+            break;
+
+            case(2):
+                npcs[i].image = car2;
+            break;
+
+            case(3):
+                npcs[i].image = car3;
+            break;
+        }
+
+        npcs[i].goTo(225,-200 * Math.random() * 40);//makes so spread out at start of the game
+    }
+
+    //random vars
+    Paused = true;
+    playerScore = 0;
+    playerHealth = 2000;
+
+
+    player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
+
+    roads[0].goTo(c.width/2 - roads[0].width/2 -45, -roads[0].height);
+    roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
+
+    grass[0].goTo(0,0);
+    grass[1].goTo(810,0);
+}
+
+//run every frame for rendering
 function Loop(){
     ctx.clearRect(0,0,c.width,c.height);
-    ctx.fillStyle = "green"
-    ctx.fillRect(0,0,c.width,c.height);
 
-    Honk.play();
-    
-    if(roads[0].position.y > c.height){
-        roads[0].goTo(roads[1].position.x,  roads[1].position.y - roads[0].height);
-    }
-    if(roads[1].position.y > c.height){
-        roads[1].goTo(roads[1].position.x,  -roads[1].height);
-    }
-
-    roads[0].renderImage();
-    roads[1].renderImage();
-    grass[0].render("green");
-    grass[1].render("green");
-    player.renderImage(); 
+    //rendering
+        roads[0].renderImage();
+        roads[1].renderImage();
+        grass[0].render("green");
+        grass[1].render("green");
+        player.renderImage(); 
+        for(let i = 0; i < npcs.length; i++){
+            npcs[i].renderImage();
+        }
+        
+    //score handling
+        playerScore += (Math.round(( Math.abs(player.velocity.y + 1) / 100)));
+        score.text = "Score: " + playerScore
+        score.renderText("black", 5,5);
 
 
+    //health bar
+        playerHealth = (playerHealth < 0) ? 0 : playerHealth;
 
-    for(let i = 0; i < npcs.length; i++){
-        npcs[i].renderImage();
-    }
-    
-    playerScore += (Math.round(( Math.abs(player.velocity.y + 1) / 100)));
+        ctx.fillStyle = "black";
+        ctx.fillRect(20,40,160,20);
+        ctx.fillStyle = "red";
+        ctx.fillRect(25,45,150,10);
+        ctx.fillStyle = "lime";
+        ctx.fillRect(25,45,playerHealth/13.333,10);
 
-    score.text = "Score: " + playerScore
-    score.renderText("black", 5,5);
-
-    playerHealth = (playerHealth < 0) ? 0 : playerHealth;
-
-    ctx.fillStyle = "black";
-    ctx.fillRect(20,40,160,20);
-    ctx.fillStyle = "red";
-    ctx.fillRect(25,45,150,10);
-    ctx.fillStyle = "lime";
-    ctx.fillRect(25,45,playerHealth/13.333,10);
-
-    if(Paused){
-        ctx.drawImage(MenuImg, 0, 0,1000,900);
-        startScreen[0].render("#46494f");
-        startScreen[0].renderText("Black", 50,32);
-        startScreen[0].shown = true;
-    }
+    //start/death Screen
+        if(Paused){
+            ctx.drawImage(MenuImg, 0, 0,1000,900);
+            startScreen[0].render("#46494f");
+            startScreen[0].renderText("Black", 50,32);
+            startScreen[0].shown = true;
+        }
 
 
     window.requestAnimationFrame(Loop);
@@ -324,32 +304,20 @@ function Loop(){
 
 window.requestAnimationFrame(Loop);
 
-function PhysicsLoop(){
-    time.deltaTime = (new Date().getTime() - time.pastTime)/100;
-    time.pastTime = new Date().getTime();
 
+//loops every frame but keeps track of time between frames - for movement and physics
+function PhysicsLoop(){
+    //setting delta time
+        time.deltaTime = (new Date().getTime() - time.pastTime)/100;
+        time.pastTime = new Date().getTime();
+
+    //death 
     if(playerHealth <= 0){
         Paused = true;
-        playerHealth = 2000;
-        playerScore = 0;  
-
-        player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:200, y:200});
-        roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
-        grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
-        score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
-        startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif")];
-
-        player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
-
-        roads[0].goTo(c.width/2 - roads[0].width/2 -45, -roads[0].height);
-        roads[1].goTo(c.width/2 - roads[1].width/2 -45, 0);
-
-        grass[0].goTo(0,0);
-        grass[1].goTo(810,0);
-
+        init();
     }
 
-
+    //slow player if on grass
     if(checkCollision(player,grass[0]) ||   checkCollision(player,grass[1])){
         player.friction.x = 0.90;
         player.friction.y = 0.90;
@@ -358,16 +326,26 @@ function PhysicsLoop(){
         player.friction.y = 0.99;
     }
 
+    //wrapping roads 
+    if(roads[0].position.y > c.height){
+        roads[0].goTo(roads[1].position.x,  roads[1].position.y - roads[0].height);
+    }
+    if(roads[1].position.y > c.height){
+        roads[1].goTo(roads[1].position.x,  -roads[1].height);
+    }
 
+
+    //physics for player
     player.convertForces();
     player.force.x *= player.friction.x;
     player.force.y *= player.friction.y;
 
+    //offsetting via velocity
     player.offset(player.velocity.x * time.deltaTime,0)
     roads[0].offset(0,-player.velocity.y * time.deltaTime);
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
-    world.y += -player.velocity.y * time.deltaTime;
 
+    //npc handleing
     if(!Paused){
         for(let i = 0; i < npcs.length; i++){
             //move every npcs by their velocity
@@ -376,7 +354,8 @@ function PhysicsLoop(){
             if(npcs[i].position.y + 500 < 0 || npcs[i].position.y > c.height + 300){
                 npcs[i].velocity.y = -20 * time.deltaTime;
                 npcs[i].velocity.x = 0;
-                //image
+
+                //choose random image
                 let rand = Math.round(Math.random() * 3);
                 switch(rand){
                     case(1):
@@ -392,7 +371,7 @@ function PhysicsLoop(){
                     break;
                 }
 
-                //lane
+                //random lane
                 switch(Math.round(Math.random() * 4)){
                     case(1):
                         npcs[i].position.x = 225;
@@ -451,13 +430,6 @@ function PhysicsLoop(){
     }
 
 
-
-
-
-
-
-
-
     time.time += time.deltaTime;
     window.requestAnimationFrame(PhysicsLoop);
 }
@@ -467,7 +439,7 @@ window.requestAnimationFrame(PhysicsLoop);
 
 
 
-
+//handles inputs so there is no delay when holding down keys
 function inputs(){
 if(!Paused){
     
@@ -493,7 +465,9 @@ if(!Paused){
 }
 
 inputs();
-//inputs
+
+
+//event listeners
 document.addEventListener("keydown", function (e){
         switch(e.key){
             case(keybinds.forward.key):
@@ -526,15 +500,13 @@ document.addEventListener("keyup", function (e){
     }
 });
 
-c.addEventListener("mousemove", function () {
-
-});
-
 document.addEventListener("mousedown", function (event) {
-    if(startScreen[0].shown){
-        const rect = c.getBoundingClientRect()
-        const x = event.clientX - rect.left
-        const y = event.clientY - rect.top
+    if(startScreen[0].shown){//start button
+        //took this from stack overflow:
+            const rect = c.getBoundingClientRect()
+            const x = event.clientX - rect.left
+            const y = event.clientY - rect.top
+
         if(x > startScreen[0].x && x < startScreen[0].x + startScreen[0].w){
             if(y > startScreen[0].y && y < startScreen[0].y + startScreen[0].h){
                 Paused = false;
@@ -542,8 +514,8 @@ document.addEventListener("mousedown", function (event) {
             }
         }
     }
-    if(startScreen[1].shown){
 
+    if(startScreen[1].shown){//easter egg(gives you invincibility by clicking in the very top right corner)
         const rect = c.getBoundingClientRect()
         const x = event.clientX - rect.left
         const y = event.clientY - rect.top
@@ -554,9 +526,4 @@ document.addEventListener("mousedown", function (event) {
             }
         }
     }
-});
-
-
-document.addEventListener("wheel", function () {
-
 });
