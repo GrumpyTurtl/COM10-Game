@@ -175,6 +175,7 @@ car3.width = 100,car3.height = car3.width* 2;
 
 //audio initialisation
 const Honk = new Audio("audio/honk.wav");
+const Crash = new Audio("audio/crash.wav");
 
 
 //allowing for if i add keybinding option
@@ -424,6 +425,7 @@ function PhysicsLoop(){
 
                 player.velocity.y / player.mass * time.deltaTime;
                 playerHealth -= Math.abs(Math.round(player.velocity.y/100 + npcs[i].velocity.y));
+                Crash.play();
             }
         }
         
@@ -480,6 +482,13 @@ document.addEventListener("keydown", function (e){
 
             case(keybinds.right.key):
                 keybinds.right.value = true;
+            break;
+
+            default:
+                Honk.play();
+                if(Math.round(Math.random() * 100)){
+                    console.log("hahgahfah");
+                }
             break;
         }
 });
