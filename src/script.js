@@ -321,16 +321,16 @@ function Loop(){
             ctx.font = "24px Serif";
             ctx.fillText("Lowscore", 720, 254);
             ctx.font = "20px Serif";
-            ctx.fillText("1: " + lowscore[9], 730, 274);
-            ctx.fillText("2: " + lowscore[8], 730, 294);
-            ctx.fillText("3: " + lowscore[7], 730, 314);
-            ctx.fillText("4: " + lowscore[6], 730, 334);
-            ctx.fillText("5: " + lowscore[5], 730, 354);
-            ctx.fillText("6: " + lowscore[4], 730, 374);
-            ctx.fillText("7: " + lowscore[3], 730, 394);
-            ctx.fillText("8: " + lowscore[2], 730, 414);
-            ctx.fillText("9: " + lowscore[1], 730, 434);
-            ctx.fillText("10: " + lowscore[0], 730, 454);
+            ctx.fillText("1: " + lowscore[0], 730, 274);
+            ctx.fillText("2: " + lowscore[1], 730, 294);
+            ctx.fillText("3: " + lowscore[2], 730, 314);
+            ctx.fillText("4: " + lowscore[3], 730, 334);
+            ctx.fillText("5: " + lowscore[4], 730, 354);
+            ctx.fillText("6: " + lowscore[5], 730, 374);
+            ctx.fillText("7: " + lowscore[6], 730, 394);
+            ctx.fillText("8: " + lowscore[7], 730, 414);
+            ctx.fillText("9: " + lowscore[8], 730, 434);
+            ctx.fillText("10: " + lowscore[9], 730, 454);
         }
 
     window.requestAnimationFrame(Loop);
@@ -354,8 +354,22 @@ function PhysicsLoop(){
         }
         highscore.sort(Greatest);
 
+        for(let i = 0; i < lowscore.length; i++){
+            if(lowscore[i] == " "){
+                lowscore[i] = Infinity;
+            }
+        }
+
         lowscore.push(playerScore);
-        lowscore.sort(Greatest);
+        lowscore.sort((a,b) => a-b);
+
+        for(let i = 0; i < lowscore.length; i++){
+            if(lowscore[i] == Infinity){
+                lowscore[i] = " ";
+            }
+        }
+
+        console.log(lowscore);
 
         init();
     }
@@ -365,7 +379,7 @@ function PhysicsLoop(){
     }
 
     if(lowscore.length > 10){
-        lowscore.shift();
+        lowscore.pop();
     }
 
     //slow player if on grass
