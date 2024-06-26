@@ -207,7 +207,10 @@ var score;
 var startScreen;
 
 var Paused;
-
+var godMode;
+var highscore = ["","","","","","","","","",""];
+var lowscore = ["","","","","","","","","",""];
+var tables;
 
 
 init(); 
@@ -222,7 +225,8 @@ function init(){
 
     //UI
     score = new UI(20,30,100,100,null,true,"Score: 0","24px Serif", null);
-    startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif"), new UI(0,0,10,10,null,true, null, null)];
+    startScreen = [new UI(400,500,200,50,null,true,"Start Game", "24px Serif"), new UI(400,570,200,50,null,true, "God Mode: off", "24px Serif")];
+    tables = new UI(700,0,300,900,null,true,"Highscore:", "24px Serif");
 
     //npcs init
     npcs = [];
@@ -248,8 +252,10 @@ function init(){
 
     //random vars
     Paused = true;
+    godMode = false;
     playerScore = 0;
     playerHealth = 2000;
+    
 
 
     player.offset(c.width/2 - player.image.width/2,c.height/2 - player.image.height/2);
@@ -296,9 +302,36 @@ function Loop(){
             ctx.drawImage(MenuImg, 0, 0,1000,900);
             startScreen[0].render("#46494f");
             startScreen[0].renderText("Black", 50,32);
+            startScreen[1].render("#46494f");
+            startScreen[1].renderText("Black", 30,32);
             startScreen[0].shown = true;
+            tables.render("rgba(70, 73, 79,0.8)");
+            tables.renderText("Black", 20, 24);
+            ctx.font = "20px Serif";
+            ctx.fillText("1: " + highscore[0], 730, 44);
+            ctx.fillText("2: " + highscore[1], 730, 64);
+            ctx.fillText("3: " + highscore[2], 730, 84);
+            ctx.fillText("4: " + highscore[3], 730, 104);
+            ctx.fillText("5: " + highscore[4], 730, 124);
+            ctx.fillText("6: " + highscore[5], 730, 144);
+            ctx.fillText("7: " + highscore[6], 730, 164);
+            ctx.fillText("8: " + highscore[7], 730, 184);
+            ctx.fillText("9: " + highscore[8], 730, 204);
+            ctx.fillText("10: " + highscore[9], 730, 224);
+            ctx.font = "24px Serif";
+            ctx.fillText("Lowscore", 720, 254);
+            ctx.font = "20px Serif";
+            ctx.fillText("1: " + lowscore[9], 730, 274);
+            ctx.fillText("2: " + lowscore[8], 730, 294);
+            ctx.fillText("3: " + lowscore[7], 730, 314);
+            ctx.fillText("4: " + lowscore[6], 730, 334);
+            ctx.fillText("5: " + lowscore[5], 730, 354);
+            ctx.fillText("6: " + lowscore[4], 730, 374);
+            ctx.fillText("7: " + lowscore[3], 730, 394);
+            ctx.fillText("8: " + lowscore[2], 730, 414);
+            ctx.fillText("9: " + lowscore[1], 730, 434);
+            ctx.fillText("10: " + lowscore[0], 730, 454);
         }
-
 
     window.requestAnimationFrame(Loop);
 }
@@ -315,7 +348,24 @@ function PhysicsLoop(){
     //death 
     if(playerHealth <= 0){
         Paused = true;
+        highscore.push(playerScore);
+        function Greatest(a,b){
+            return b-a;
+        }
+        highscore.sort(Greatest);
+
+        lowscore.push(playerScore);
+        lowscore.sort(Greatest);
+
         init();
+    }
+
+    if(highscore.length > 10){
+        highscore.pop();
+    }
+
+    if(lowscore.length > 10){
+        lowscore.shift();
     }
 
     //slow player if on grass
@@ -530,8 +580,15 @@ document.addEventListener("mousedown", function (event) {
         const y = event.clientY - rect.top
         if(x > startScreen[1].x && x < startScreen[1].x + startScreen[1].w){
             if(y > startScreen[1].y && y < startScreen[1].y + startScreen[1].h){
-                playerHealth = Infinity;
-                startScreen[1].shown = false;
+                if(playerHealth < 100000000){
+                    playerHealth = Infinity;
+                    startScreen[1].text = "God Mode: on";
+                    godMode = true;
+                }else{
+                    playerHealth = 2000;
+                    startScreen[1].text = "God Mode: off";
+                    godMode = false;
+                }
             }
         }
     }
