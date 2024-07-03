@@ -1,6 +1,10 @@
 //brakes not included - made by oli hills
 //note: sorry if this is impossible to read. I tried to add comments.
 
+
+//description needed:
+
+
 //links the html canvas to js
 var c = document.getElementById('cvs');
 var ctx = c.getContext('2d');
@@ -155,23 +159,23 @@ class UI{
 
 
 //image initialisation
-const road = new Image();
-const car0 = new Image();
-const car1 = new Image();
-const car2 = new Image();
-const car3 = new Image();
+const ROAD = new Image();
+const CAR0 = new Image();
+const CAR1 = new Image();
+const CAR2 = new Image();
+const CAR3 = new Image();
 const MenuImg = new Image();
-road.src = "imgs/road.png";
-car0.src = "imgs/car.png";
-car1.src = "imgs/car1.png";
-car2.src = "imgs/car2.png";
-car3.src = "imgs/car3.png";
+ROAD.src = "imgs/road.png";
+CAR0.src = "imgs/car.png";
+CAR1.src = "imgs/car1.png";
+CAR2.src = "imgs/car2.png";
+CAR3.src = "imgs/car3.png";
 MenuImg.src = "imgs/menu.png";
-road.width = 512 * 1.2,road.height = 512 * 2;
-car0.width = 100,car0.height = car0.width* 2;
-car1.width = 100,car1.height = car1.width* 2;
-car2.width = 100,car2.height = car2.width* 2;
-car3.width = 100,car3.height = car3.width* 2;
+ROAD.width = 512 * 1.2,ROAD.height = 512 * 2;
+CAR0.width = 100,CAR0.height = CAR0.width* 2;
+CAR1.width = 100,CAR1.height = CAR1.width* 2;
+CAR2.width = 100,CAR2.height = CAR2.width* 2;
+CAR3.width = 100,CAR3.height = CAR3.width* 2;
 
 //audio initialisation
 const Honk = new Audio("audio/honk.wav");
@@ -192,7 +196,7 @@ var time = {
 }
 
 
-Load([car1,car2,car3,car0,road,MenuImg]);
+Load([CAR1,CAR2,CAR3,CAR0,ROAD,MenuImg]);
 
 
 
@@ -206,7 +210,7 @@ var npcs;
 var score;
 var startScreen;
 
-var Paused;
+var paused;
 var godMode;
 var highscore = ["","","","","","","","","",""];
 var lowscore = ["","","","","","","","","",""];
@@ -219,8 +223,8 @@ init();
 function init(){
 
     //game objects
-    player = new GameObject(0,0,100,200,car0,2,{x:0.99, y:0.99},{x:9200, y:9200});
-    roads = [new GameObject(0,0,512,512*2,road,1,0,0),new GameObject(0,0,512,512*2,road,1,0,0)];
+    player = new GameObject(0,0,100,200,CAR0,2,{x:0.99, y:0.99},{x:9200, y:9200});
+    roads = [new GameObject(0,0,512,512*2,ROAD,1,0,0),new GameObject(0,0,512,512*2,ROAD,1,0,0)];
     grass = [new GameObject(0,0,200,1000, null, 0,0,0),new GameObject(0,0,200,1000, null, 0,0,0)];
 
     //UI
@@ -230,20 +234,20 @@ function init(){
 
     //npcs init
     npcs = [];
-    for(let i = 0; i < 9; i++){
-        npcs.push(new GameObject(0,0,100,200,car1,4,{x:0, y:0},{x:99, y:99}));
+    for(let i = 0; i < 3; i++){
+        npcs.push(new GameObject(0,0,100,200,CAR1,4,{x:0, y:0},{x:99, y:99}));
 
         switch(Math.round(Math.random() * 3)){
             case(1):
-                npcs[i].image = car1;
+                npcs[i].image = CAR1;
             break;
 
             case(2):
-                npcs[i].image = car2;
+                npcs[i].image = CAR2;
             break;
 
             case(3):
-                npcs[i].image = car3;
+                npcs[i].image = CAR3;
             break;
         }
 
@@ -251,7 +255,7 @@ function init(){
     }
 
     //random vars
-    Paused = true;
+    paused = true;
     godMode = false;
     playerScore = 0;
     playerHealth = 2000;
@@ -298,7 +302,7 @@ function Loop(){
         ctx.fillRect(25,45,playerHealth/13.333,10);
 
     //start/death Screen
-        if(Paused){
+        if(paused){
             ctx.drawImage(MenuImg, 0, 0,1000,900);
             startScreen[0].render("#46494f");
             startScreen[0].renderText("Black", 50,32);
@@ -344,10 +348,11 @@ function PhysicsLoop(){
     //setting delta time
         time.deltaTime = (new Date().getTime() - time.pastTime)/100;
         time.pastTime = new Date().getTime();
+    
 
     //death 
     if(playerHealth <= 0){
-        Paused = true;
+        paused = true;
         highscore.push(playerScore);
         function Greatest(a,b){
             return b-a;
@@ -411,7 +416,7 @@ function PhysicsLoop(){
     roads[1].offset(0,-player.velocity.y * time.deltaTime);
 
     //npc handleing
-    if(!Paused){
+    if(!paused){
         for(let i = 0; i < npcs.length; i++){
             //move every npcs by their velocity
             npcs[i].offset(npcs[i].velocity.x * time.deltaTime, npcs[i].velocity.y - player.velocity.y  * time.deltaTime);
@@ -424,15 +429,15 @@ function PhysicsLoop(){
                 let rand = Math.round(Math.random() * 3);
                 switch(rand){
                     case(1):
-                        npcs[i].image = car1;
+                        npcs[i].image = CAR1;
                     break;
 
                     case(2):
-                        npcs[i].image = car2;
+                        npcs[i].image = CAR2;
                     break;
 
                     case(3):
-                        npcs[i].image = car3;
+                        npcs[i].image = CAR3;
                     break;
                 }
 
@@ -507,7 +512,7 @@ window.requestAnimationFrame(PhysicsLoop);
 
 //handles inputs so there is no delay when holding down keys
 function inputs(){
-if(!Paused){
+if(!paused){
     
     if(keybinds.forward.value == true){
         player.addForce(0,-150 / player.mass * time.deltaTime);
@@ -582,7 +587,7 @@ document.addEventListener("mousedown", function (event) {
 
         if(x > startScreen[0].x && x < startScreen[0].x + startScreen[0].w){
             if(y > startScreen[0].y && y < startScreen[0].y + startScreen[0].h){
-                Paused = false;
+                paused = false;
                 startScreen[0].shown = false;
             }
         }
