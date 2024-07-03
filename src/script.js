@@ -164,13 +164,15 @@ const CAR0 = new Image();
 const CAR1 = new Image();
 const CAR2 = new Image();
 const CAR3 = new Image();
-const MenuImg = new Image();
+const MENUIMG = new Image();
+
 ROAD.src = "imgs/road.png";
 CAR0.src = "imgs/car.png";
 CAR1.src = "imgs/car1.png";
 CAR2.src = "imgs/car2.png";
 CAR3.src = "imgs/car3.png";
-MenuImg.src = "imgs/menu.png";
+MENUIMG.src = "imgs/menu.png";
+
 ROAD.width = 512 * 1.2,ROAD.height = 512 * 2;
 CAR0.width = 100,CAR0.height = CAR0.width* 2;
 CAR1.width = 100,CAR1.height = CAR1.width* 2;
@@ -180,6 +182,7 @@ CAR3.width = 100,CAR3.height = CAR3.width* 2;
 //audio initialisation
 const Honk = new Audio("audio/honk.wav");
 const Crash = new Audio("audio/crash.wav");
+Honk.volume = 1;
 
 
 //allowing for if i add keybinding option
@@ -196,7 +199,7 @@ var time = {
 }
 
 
-Load([CAR1,CAR2,CAR3,CAR0,ROAD,MenuImg]);
+Load([CAR1,CAR2,CAR3,CAR0,ROAD,MENUIMG]);
 
 
 
@@ -303,7 +306,7 @@ function Loop(){
 
     //start/death Screen
         if(paused){
-            ctx.drawImage(MenuImg, 0, 0,1000,900);
+            ctx.drawImage(MENUIMG, 0, 0,1000,900);
             startScreen[0].render("#46494f");
             startScreen[0].renderText("Black", 50,32);
             startScreen[1].render("#46494f");
@@ -353,14 +356,18 @@ function PhysicsLoop(){
     //death 
     if(playerHealth <= 0){
         paused = true;
-        highscore.push(playerScore);
+        if(!godMode){
+            highscore.push(playerScore);
+        }
+
         function Greatest(a,b){
             return b-a;
         }
+
         highscore.sort(Greatest);
 
         for(let i = 0; i < lowscore.length; i++){
-            if(lowscore[i] == " "){
+            if(lowscore[i] == ""){
                 lowscore[i] = Infinity;
             }
         }
@@ -370,11 +377,9 @@ function PhysicsLoop(){
 
         for(let i = 0; i < lowscore.length; i++){
             if(lowscore[i] == Infinity){
-                lowscore[i] = " ";
+                lowscore[i] = "";
             }
         }
-
-        console.log(lowscore);
 
         init();
     }
@@ -554,9 +559,14 @@ document.addEventListener("keydown", function (e){
             break;
 
             default:
+                const Honk = new Audio("audio/honk.wav");
+                Honk.volume = 1;
                 Honk.play();
-                if(Math.round(Math.random() * 100)){
-                    console.log("hahgahfah");
+                if(Math.round(Math.random() * 100) == 50){
+                    for(let i = 0; i < npcs.length; i++){
+                        npcs[i].velocity.x += (npcs[i].position.x > player.position.x) ? 100 : -100;
+                        
+                    }
                 }
             break;
         }
